@@ -1,1 +1,1 @@
-# GaussianMixtureModel4MND
+# GaussianMixtureModel4MND_Diagnostic

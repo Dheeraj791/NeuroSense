@@ -1,0 +1,132 @@
+.particle-network-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  background-color: #171717;
+}
+.particle-network-animation::before {
+  z-index: -1;
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-image: url('/static/images/1686715766_en-idei-club-p-medical-abstract-background-dizain-instagr-1.jpg');
+  background-position: center center;
+  background-size: cover;
+  opacity: 0.5;
+}
+
+.glow {
+  z-index: -1;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  background-image: radial-gradient(circle closest-side, rgba(255, 255, 255, 0.025), transparent);
+}
+
+.glow-1 {
+  width: 150vw;
+  height: 150vh;
+  margin-top: -75vh;
+  margin-left: -75vw;
+  animation: glow-1-move 25s linear infinite both;
+}
+
+@keyframes glow-1-move {
+  from {
+    transform: translate(-100%, 100%);
+  }
+  to {
+    transform: translate(100%, -100%);
+  }
+}
+.glow-2 {
+  width: 100vw;
+  height: 100vh;
+  margin-top: -50vh;
+  margin-left: -50vw;
+  animation: glow-2-move 25s linear 8.3333333333s infinite both;
+}
+
+@keyframes glow-2-move {
+  from {
+    transform: translate(-100%, 0%);
+  }
+  to {
+    transform: translate(100%, 100%);
+  }
+}
+.glow-3 {
+  width: 120vw;
+  height: 120vh;
+  margin-top: -60vh;
+  margin-left: -60vw;
+  animation: glow-3-move 25s linear 16.6666666667s infinite both;
+}
+
+@keyframes glow-3-move {
+  from {
+    transform: translate(100%, 100%);
+  }
+  to {
+    transform: translate(0%, -100%);
+  }
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  z-index: 1;
+}
+
+.button-group {
+  margin-bottom: 15px;
+}
+
+input[type="number"], select {
+  padding: 8px;
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+button {
+  padding: 8px 16px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.upload-section {
+  margin-top: 20px;
+}
+
+.upload-section input[type="file"] {
+  margin-right: 10px;
+}
+
+.particle-network-animation {
+  margin-bottom: 30px;
+  font-size: 24px;
+  color: #2e2525;
+}
+
+/* Ensure video player takes up half the window width */
+#videoPreview {
+  width: 50vw; /* 50% of the viewport width */
+  height: auto; /* Maintain aspect ratio */
+  margin-top: 15px; /* Space between the video player and buttons */
+  background-color: #f3f3f3;  /* Light grey background to indicate the space */
+  border: 1px solid #ccc; /* Border to outline the video area */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative; /* Position relative for better flexibility */
+}
+
+#videoPlayer {
+  width: 100%;  /* Make the video take up the full width of the container */
+  height: auto; /* Maintain aspect ratio based on the width */
+}

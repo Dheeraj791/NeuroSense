@@ -1,0 +1,15 @@
+# Ignore virtual environment
+venv/
+env/
+.venv/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore installed dependencies
+*.egg-info/
+pip-log.txt
+pip-delete-this-directory.txt

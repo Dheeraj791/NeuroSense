@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroSense</title>
+
+    <!-- Load jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 10;
+            box-sizing: border-box;
+        }
+
+        .dropdown-container {
+            display: flex;
+            gap: 50px;
+            margin-bottom: 3px;
+            margin-top: 10px;
+        }
+
+        .dropdown {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: white;
+            width: 100%;
+        }
+
+        .file-upload-container {
+            margin-top: 20px;
+        }
+
+        /* Particle Background */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: url("{{ url_for('static', filename='images/background.jpg') }}") no-repeat center center;
+            background-size: cover;
+        }
+
+        /* Center the logo at the top */
+        .logo-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%); 
+            transition: transform 0.3s ease-in-out; 
+            z-index: 9999; 
+        }
+
+        /* Logo styling */
+        .logo {
+            max-width: 150px;
+            height: auto;
+            cursor: pointer; 
+            transition: transform 0.3s ease-in-out; 
+        }
+
+        /* Hover effect to zoom in */
+        .logo-container:hover .logo {
+            transform: scale(1.2); 
+        }
+
+
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; 
+            align-items: flex-start;
+            padding: 100px 20px 50px 20px; 
+            margin-top: 80px; 
+            min-height: 60vh; 
+        }
+
+        .section {
+            width: 48%;
+            padding: 20px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.9);
+            margin: 10px;
+        }
+
+        .section h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .button {
+            background-color: #00c0b5;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 15px;
+
+        }
+
+        .button:hover {
+            background-color: #00c0b5;
+        }
+
+        .download-button {
+            background-color: #004085;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            display: block;
+            text-align: center;
+            width: 100%;
+        }
+
+        .download-button:hover {
+            background-color: #0069d9;
+        }
+
+        #videoPreview {
+            margin-top: 10px;
+        }
+
+        video {
+            width: 100%;
+            max-height: 300px;
+            border: 1px solid #ccc;
+        }
+
+        /* Footer Styling */
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00c0b5; 
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .section {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="particles-js"></div> <!-- Particle Animation -->
+
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='images/NEuroSense.png') }}" alt="Logo" class="logo">
+    </div>
+
+    <div class="main-container">
+        <!-- Single Video Upload Section -->
+        <div class="section">
+            <h2>Single Video Upload</h2>
+            <input type="file" id="singleVideoUpload" accept="video/*" onchange="previewSingleVideo()">
+
+             <!-- Dropdowns for selection -->
+             <div class="dropdown-container">
+                <select class="dropdown" id="muscleGroup">
+                    <option value="">Select Muscle Group</option>
+                    <option value="biceps">Bicep Brachii</option>
+                    <option value="triceps">Medial Gastronemius</option>
+                    <option value="quadriceps">Thoracic Paraspinal</option>
+                    <option value="gastrocnemius">Abductor Digiti Minimi</option>
+                </select>
+                <select class="dropdown" id="probeOrientation">
+                    <option value="">Select Probe Orientation</option>
+                    <option value="longitudinal">Longitudinal</option>
+                    <option value="transverse">Transverse</option>
+                </select>
+            </div>
+
+            <button class="button" onclick="previewSingleVideo()">Upload Single Video</button>
+
+            <!-- Video display window -->
+            <div id="singleVideoPreview">
+                <video id="singleVideoPlayer" controls style="display: none;">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+
+        <!-- Bulk Video Upload Section -->
+        <!-- Bulk Video Upload Section -->
+        <div class="section">
+            <h2>Bulk Video Upload</h2>
+
+            <!-- Select Folder Button -->
+            <button class="button" onclick="selectFolder()">Select Folder</button>
+            
+            <!-- Excel Upload Input -->
+            <input type="file" id="bulkExcelUpload" accept=".xlsx, .csv">
+            <button class="button" onclick="uploadExcel()">Upload Excel File</button>
+
+            <!-- Excel Download Button -->
+            <a id="downloadExcelLink" style="display:none;" download="files_list.xlsx">
+                <button class="download-button">Download Excel</button>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        Designed and Developed by Team Tole
+    </footer>
+
+    <script>
+        $(document).ready(function() {
+            console.log("jQuery Loaded!");
+        });
+
+        // Function to preview the uploaded video
+        function previewSingleVideo() {
+            var file = document.getElementById("singleVideoUpload").files[0];
+            if (file) {
+                var videoPlayer = document.getElementById("singleVideoPlayer");
+                var objectURL = URL.createObjectURL(file);
+                videoPlayer.src = objectURL;
+                videoPlayer.style.display = "block";  // Show the video player
+            }
+        }
+
+        function uploadExcel() {
+            var file = document.getElementById("bulkExcelUpload").files[0];
+            if (file) {
+                alert("Excel file uploaded: " + file.name);
+            }
+        }
+
+        // Initialize Particle Animation (Green Particles on White Background)
+        particlesJS("particles-js", {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: "#00c0b5" }, /* Green particles */
+                shape: { type: "circle" },
+                opacity: { value: 0.7, random: false },
+                size: { value: 3, random: true },
+                line_linked: { enable: true, distance: 150, color: "#00c0b5", opacity: 0.6, width: 1 },
+                move: { enable: true, speed: 2, direction: "none", random: false, straight: false }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: { enable: true, mode: "repulse" },
+                    onclick: { enable: true, mode: "push" }
+                },
+                modes: {
+                    repulse: { distance: 100, duration: 0.4 },
+                    push: { particles_nb: 4 }
+                }
+            }
+        });
+
+        function selectFolder() {
+        fetch('/select-folder', { method: 'POST' })  // Send request to backend
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let downloadLink = document.getElementById('downloadExcelLink');
+                downloadLink.href = data.file_url;
+                downloadLink.style.display = 'block';  // Show download button
+            } else {
+                alert("Failed to generate Excel.");
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+    </script>
+
+</body>
+</html>

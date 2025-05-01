@@ -10,168 +10,10 @@
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 10;
-            box-sizing: border-box;
-        }
-
-        .dropdown-container {
-            display: flex;
-            gap: 50px;
-            margin-bottom: 3px;
-            margin-top: 10px;
-        }
-
-        .dropdown {
-            padding: 8px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: white;
-            width: 100%;
-        }
-
-        .file-upload-container {
-            margin-top: 20px;
-        }
-
-        /* Particle Background */
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            background: url("{{ url_for('static', filename='images/background.jpg') }}") no-repeat center center;
-            background-size: cover;
-        }
-
-        /* Center the logo at the top */
-        .logo-container {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%); 
-            transition: transform 0.3s ease-in-out; 
-            z-index: 9999; 
-        }
-
-        /* Logo styling */
-        .logo {
-            max-width: 150px;
-            height: auto;
-            cursor: pointer; 
-            transition: transform 0.3s ease-in-out; 
-        }
-
-        /* Hover effect to zoom in */
-        .logo-container:hover .logo {
-            transform: scale(1.2); 
-        }
-
-
-        .main-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center; 
-            align-items: flex-start;
-            padding: 100px 20px 50px 20px; 
-            margin-top: 80px; 
-            min-height: 60vh; 
-        }
-
-        .section {
-            width: 48%;
-            padding: 20px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            background-color: rgba(255, 255, 255, 0.9);
-            margin: 10px;
-        }
-
-        .section h2 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .button {
-            background-color: #00c0b5;
-            color: white;
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            width: 100%;
-            margin-top: 15px;
-
-        }
-
-        .button:hover {
-            background-color: #00c0b5;
-        }
-
-        .download-button {
-            background-color: #004085;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 10px;
-            display: block;
-            text-align: center;
-            width: 100%;
-        }
-
-        .download-button:hover {
-            background-color: #0069d9;
-        }
-
-        #videoPreview {
-            margin-top: 10px;
-        }
-
-        video {
-            width: 100%;
-            max-height: 300px;
-            border: 1px solid #ccc;
-        }
-
-        /* Footer Styling */
-        footer {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #00c0b5; 
-            color: white;
-            text-align: center;
-            padding: 10px;
-            font-size: 14px;
-            width: 100%;
-        }
-
-        @media (max-width: 768px) {
-            .main-container {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .section {
-                width: 100%;
-                margin-bottom: 20px;
-            }
-        }
-    </style>
 </head>
 <body>
 
     <div id="particles-js"></div> <!-- Particle Animation -->
-
     <div class="logo-container">
         <img src="{{ url_for('static', filename='images/NEuroSense.png') }}" alt="Logo" class="logo">
     </div>
@@ -198,8 +40,43 @@
                 </select>
             </div>
 
-            <button class="button" onclick="previewSingleVideo()">Upload Single Video</button>
-
+            <button class="button" onclick="previewSingleVideos()">Upload Single Video</button>
+            
+            <script>
+            function previewSingleVideos() {
+                const fileInput = document.getElementById('singleVideoUpload'); 
+                const muscleGroup = document.getElementById('muscleGroup').value;
+                const probeOrientation = document.getElementById('probeOrientation').value;
+                const file = fileInput.files[0];
+            
+                if (!file) {
+                    alert("Please select a video file first.");
+                    return;
+                }
+            
+                const formData = new FormData();
+                formData.append("video", file);
+                formData.append("muscle_group", muscleGroup);
+                formData.append("probe_orientation", probeOrientation);
+            
+                fetch("/upload", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;  // Redirect to /result
+                    } else {
+                        return response.text().then(text => { throw new Error(text); });
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("Error uploading or processing video: " + error.message);
+                });
+            }
+            </script>
+            
             <!-- Video display window -->
             <div id="singleVideoPreview">
                 <video id="singleVideoPlayer" controls style="display: none;">
@@ -230,8 +107,9 @@
 
     <!-- Footer -->
     <footer>
-        Designed and Developed by Team Tole
+        Designed and Developed by Dheeraj Pandey
     </footer>
+
 
     <script>
         $(document).ready(function() {

@@ -27,7 +27,7 @@
              <!-- Dropdowns for selection -->
              <div class="dropdown-container">
                 <select class="dropdown" id="muscleGroup" required>
-                    
+
                     <option value="">Select Muscle Group</option>
                     <option value="default">Default</option>
                     <option value="BB">Bicep Brachii</option>
@@ -105,9 +105,13 @@
             <p id="estimatedTime" style="display:none;">Estimated time: <span id="timeLeft">Calculating...</span></p>
 
             <!-- Excel Download Button -->
+
             <a id="downloadExcelLink" style="display:none;" download="files_list.xlsx">
                 <button class="download-button">Download Excel</button>
             </a>
+            <p id="fillReminder" style="display:none; color: red; margin-top: 10px;">
+                Before submitting the Excel file for bulk processing, please complete the muscle group and probe orientation.            
+            </p>
         </div>
         
     </div>
@@ -173,6 +177,7 @@
                 let downloadLink = document.getElementById('downloadExcelLink');
                 downloadLink.href = data.file_url;
                 downloadLink.style.display = 'block';  // Show download button
+                document.getElementById("fillReminder").style.display = "block";
             } else {
                 alert("Failed to generate Excel.");
             }

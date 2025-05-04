@@ -306,7 +306,13 @@ def select_folder():
     file_paths = [os.path.join(folder_path, file) for file in files]
 
     # Save to Excel
-    df = pd.DataFrame({'File Name': files, 'Full Path': file_paths})
+    df = pd.DataFrame({
+    'File Name': files,
+    'Full_Path': file_paths,
+    'muscle_group': ['' for _ in files],
+    'probe_orientation': ['' for _ in files]
+    })
+    
     output_file = os.path.join(folder_path, "files_list.xlsx")
     df.to_excel(output_file, index=False)
 

@@ -20,6 +20,10 @@ app.config['PROCESSED_FOLDER'] = os.path.join('static', 'processed')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['PROCESSED_FOLDER'], exist_ok=True)
 
+upload_dir = 'uploads'
+os.makedirs(upload_dir, exist_ok=True)  # Create if not exists
+
+
 class ForegroundDetector:
     def __init__(self, num_gaussians, min_background_ratio, initial_variance, learning_rate, num_training_frames=500, adapt_learning_rate=True):
         self.num_gaussians = num_gaussians
@@ -147,7 +151,7 @@ def upload():
 
     # Define parameter map
     param_map = {
-        ('biceps', 'longitudinal'): {
+        ('BB', 'longitudinal'): {
             "num_gaussians": 5,
             "min_background_ratio": 0.85,
             "initial_variance": 30 * 2,
@@ -155,7 +159,7 @@ def upload():
             "num_training_frames": 500,
             "adapt_learning_rate": True
         },
-        ('biceps', 'transverse'): {
+        ('BB', 'transverse'): {
             "num_gaussians": 3,
             "min_background_ratio": 0.80,
             "initial_variance": 30 * 2,
@@ -163,7 +167,7 @@ def upload():
             "num_training_frames": 500,
             "adapt_learning_rate": True
         },
-        ('Gastrocnemius medialis', 'transverse'): {
+        ('MG', 'transverse'): {
             "num_gaussians": 3,
             "min_background_ratio": 0.85,
             "initial_variance": 30 * 2,
@@ -171,7 +175,7 @@ def upload():
             "num_training_frames": 500,
             "adapt_learning_rate": True
         },
-        ('Gastrocnemius medialis', 'longitudinal'): {
+        ('MG', 'longitudinal'): {
             "num_gaussians": 5,
             "min_background_ratio": 0.90,
             "initial_variance": 30 * 2,
@@ -179,7 +183,7 @@ def upload():
             "num_training_frames": 500,
             "adapt_learning_rate": True
         },
-        ('Trapezius', 'transverse'): {
+        ('TRAP', 'transverse'): {
             "num_gaussians": 4,
             "min_background_ratio": 0.90,
             "initial_variance": 30 * 2,
@@ -187,7 +191,7 @@ def upload():
             "num_training_frames": 500,
             "adapt_learning_rate": True
         },
-        ('Trapezius', 'longitudinal'): {
+        ('TRAP', 'longitudinal'): {
             "num_gaussians": 3,
             "min_background_ratio": 0.90,
             "initial_variance": 30 * 2,
@@ -195,7 +199,7 @@ def upload():
             "num_training_frames": 500,
             "adapt_learning_rate": True
         },
-        ('Rectus abdominis', 'transverse'): {
+        ('RA', 'transverse'): {
             "num_gaussians": 5,
             "min_background_ratio": 0.90,
             "initial_variance": 30 * 2,
@@ -203,7 +207,7 @@ def upload():
             "num_training_frames": 500,
             "adapt_learning_rate": True
         },
-        ('Rectus abdominis', 'longitudinal'): {
+        ('RA', 'longitudinal'): {
             "num_gaussians": 5,
             "min_background_ratio": 0.90,
             "initial_variance": 30 * 2,
@@ -211,7 +215,7 @@ def upload():
             "num_training_frames": 500,
             "adapt_learning_rate": True
         },
-        ('Thoracic paraspinal', 'transverse'): {
+        ('TP', 'transverse'): {
             "num_gaussians": 3,
             "min_background_ratio": 0.90,
             "initial_variance": 30 * 2,
@@ -219,7 +223,7 @@ def upload():
             "num_training_frames": 100,
             "adapt_learning_rate": True
         },
-        ('Thoracic paraspinal', 'longitudinal'): {
+        ('TP', 'longitudinal'): {
             "num_gaussians": 3,
             "min_background_ratio": 0.90,
             "initial_variance": 30 * 2,
@@ -312,6 +316,75 @@ def select_folder():
 def download_excel():
     file_path = request.args.get('path')
     return send_file(file_path, as_attachment=True)
+
+@app.route('/upload-excel', methods=['POST'])
+def upload_excel():
+    file = request.files['file']
+    if not file:
+        return jsonify({'success': False, 'message': 'No file uploaded'})
+
+    # Create upload directory
+    upload_dir = 'uploads'
+    os.makedirs(upload_dir, exist_ok=True)
+
+    # Save uploaded Excel file
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(upload_dir, filename)
+    file.save(file_path)
+
+    # Read Excel or CSV
+    if filename.endswith('.csv'):
+        df = pd.read_csv(file_path)
+    else:
+        df = pd.read_excel(file_path)
+
+    # Define GMM parameters
+    params = {
+        'num_gaussians': 5,
+        'min_background_ratio': 0.7,
+        'initial_variance': 15.0,
+        'learning_rate': 0.01,
+        'num_training_frames': 500,
+        'adapt_learning_rate': True
+    }
+
+    # Create a unique subfolder for this upload in static
+    base_name = os.path.splitext(filename)[0]
+    subfolder_path = os.path.join('static', 'processed_videos', base_name)
+    os.makedirs(subfolder_path, exist_ok=True)
+
+    processed_videos = []
+
+    # Process each row in Excel
+    for idx, row in df.iterrows():
+        video_path = row['Full_Path']
+        muscle_group = row['muscle_group']
+        probe_orientation = row['probe_orientation']
+
+        output_name = f"{os.path.splitext(os.path.basename(video_path))[0]}_processed.mp4"
+        output_path = os.path.join(subfolder_path, output_name)
+
+        print(f"Processing: {video_path}")
+        process_video(video_path, output_path, params)
+
+        # Append relative path for frontend
+        processed_videos.append({
+            'path': f"processed_videos/{base_name}/{output_name}",
+            'name': output_name
+        })
+
+    print("Processed videos:", processed_videos)
+
+    # Render the results page
+    session['processed_videos'] = processed_videos
+    return redirect(url_for('bulk_results'))
+
+@app.route('/results')
+def bulk_results():
+    videos = session.get('processed_videos', [])
+    print("Videos in session:", videos)  # Debug line
+    return render_template('bulk_results.html', videos=videos)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

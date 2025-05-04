@@ -26,14 +26,18 @@
 
              <!-- Dropdowns for selection -->
              <div class="dropdown-container">
-                <select class="dropdown" id="muscleGroup">
+                <select class="dropdown" id="muscleGroup" required>
+                    
                     <option value="">Select Muscle Group</option>
-                    <option value="biceps">Bicep Brachii</option>
-                    <option value="triceps">Medial Gastronemius</option>
-                    <option value="quadriceps">Thoracic Paraspinal</option>
-                    <option value="gastrocnemius">Abductor Digiti Minimi</option>
+                    <option value="default">Default</option>
+                    <option value="BB">Bicep Brachii</option>
+                    <option value="MG">Medial Gastronemius</option>
+                    <option value="TRAP">Trapezius</option>
+                    <option value="TP">Thoracic Paraspinal</option>
+                    <option value="ADM">Abductor Digiti Minimi</option>
                 </select>
-                <select class="dropdown" id="probeOrientation">
+
+                <select class="dropdown" id="probeOrientation" required>
                     <option value="">Select Probe Orientation</option>
                     <option value="longitudinal">Longitudinal</option>
                     <option value="transverse">Transverse</option>
@@ -86,7 +90,6 @@
         </div>
 
         <!-- Bulk Video Upload Section -->
-        <!-- Bulk Video Upload Section -->
         <div class="section">
             <h2>Bulk Video Upload</h2>
 
@@ -97,12 +100,16 @@
             <input type="file" id="bulkExcelUpload" accept=".xlsx, .csv">
             <button class="button" onclick="uploadExcel()">Upload Excel File</button>
 
+            <!-- Add a progress bar and estimated time text -->
+            <progress id="uploadProgress" value="0" max="100" style="width: 100%; display:none;"></progress>
+            <p id="estimatedTime" style="display:none;">Estimated time: <span id="timeLeft">Calculating...</span></p>
+
             <!-- Excel Download Button -->
             <a id="downloadExcelLink" style="display:none;" download="files_list.xlsx">
                 <button class="download-button">Download Excel</button>
             </a>
         </div>
-
+        
     </div>
 
     <!-- Footer -->
@@ -173,7 +180,60 @@
         .catch(error => console.error('Error:', error));
 }
 
-    </script>
+function uploadExcel() {
+    const fileInput = document.getElementById("bulkExcelUpload");
+    const file = fileInput.files[0];
+    if (!file) return;
 
-</body>
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const xhr = new XMLHttpRequest();
+
+    const progressBar = document.getElementById("uploadProgress");
+    const timeText = document.getElementById("estimatedTime");
+    const timeLeftSpan = document.getElementById("timeLeft");
+
+    progressBar.style.display = "block";
+    timeText.style.display = "block";
+
+    let startTime = Date.now();
+
+    xhr.upload.addEventListener("progress", function (event) {
+        if (event.lengthComputable) {
+            let percentComplete = (event.loaded / event.total) * 100;
+            progressBar.value = percentComplete;
+
+            let elapsedTime = (Date.now() - startTime) / 1000; // seconds
+            let estimatedTotalTime = (elapsedTime / percentComplete) * 100;
+            let timeRemaining = estimatedTotalTime - elapsedTime;
+
+            if (percentComplete < 100) {
+                timeLeftSpan.innerText = `${timeRemaining.toFixed(1)} seconds`;
+            } else {
+                timeLeftSpan.innerText = "Processing...";
+            }
+        }
+    });
+
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            alert("Upload complete!");
+            progressBar.style.display = "none";
+            timeText.style.display = "none";
+            window.location.href = "/results";  // Redirect to the results page
+        } else {
+            alert("Upload failed.");
+        }
+    };
+
+    xhr.onerror = function () {
+        alert("An error occurred during upload.");
+    };
+
+    xhr.open("POST", "/upload-excel", true);
+    xhr.send(formData);
+}
+        </script>
+    </body>
 </html>

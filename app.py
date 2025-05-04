@@ -73,6 +73,9 @@ def process_video(input_video_path, output_video_path, params):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
 
+    twitch_time_sec = 0.2  # 200 milliseconds
+    window_size = int(fps * twitch_time_sec)
+
     # Use MP4 codec
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
@@ -91,43 +94,72 @@ def process_video(input_video_path, output_video_path, params):
     blob_detector = cv2.SimpleBlobDetector_create(params_blob)
 
     frame_count = 0
+    window_frame_counter = 0
+    blob_found_in_window = False
+    prev_frame_blob_found = False  # To track if blobs were detected in the previous frame
+    prev_window_had_blob = False
+    fasciculation_count = 0
 
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
 
-        # Get foreground mask
         fg_mask = detector.step(frame)
 
         if frame_count > 500:
-            # Detect blobs in the foreground mask
             keypoints = blob_detector.detect(fg_mask)
 
-            # Extract centroids
+            # Initialize current_frame_blob_found to False
+            current_frame_blob_found = False
+
+            # Detect blobs in the current frame
+            if len(keypoints) > 4:
+                current_frame_blob_found = True  # More than one blob in the current frame
+
+            # Only consider the blobs as found if blobs were detected in both the current and the previous frame
+            if current_frame_blob_found and prev_frame_blob_found:
+                blob_found_in_window = True  # Blobs detected in consecutive frames
+
+            # Visual overlays (if required)
             centroids = []
             for k in keypoints:
                 x, y = int(k.pt[0]), int(k.pt[1])
                 centroids.append((x, y))
                 cv2.circle(frame, (x, y), 5, (0, 0, 255), -1)  # Red dot
 
-            # Connect blobs with lines
-            for i in range(len(centroids)):
-                for j in range(i + 1, len(centroids)):
-                    pt1 = centroids[i]
-                    pt2 = centroids[j]
-                    cv2.line(frame, pt1, pt2, (255, 255, 0), 1)  # Cyan line
+            # Connect blobs with lines (one line for each pair)
+            for i in range(len(centroids) - 1):  # Ensure we don't go out of bounds
+                pt1 = centroids[i]
+                pt2 = centroids[i + 1]  # Connect blob i to blob i+1
+                cv2.line(frame, pt1, pt2, (255, 255, 0), 1)  # Cyan line
 
-        # Write the frame (with overlays if any)
-        out.write(frame)  
+            # Update previous frame blob found state for the next iteration
+            prev_frame_blob_found = current_frame_blob_found
+
+        # End of twitch window — check for fasciculation
+        if window_frame_counter >= window_size:
+            if blob_found_in_window and not prev_window_had_blob:
+                fasciculation_count += 1
+                prev_window_had_blob = True
+            elif not blob_found_in_window:
+                prev_window_had_blob = False
+
+            # Reset for next window
+            blob_found_in_window = False
+            window_frame_counter = 0
+
+        out.write(frame)
 
         frame_count += 1
+        window_frame_counter += 1
 
+    # After loop ends
+    print(f"Total fasciculations detected: {fasciculation_count}")
 
     cap.release()
     out.release()
-    print(f"Finished processing {input_video_path}")
-
+    return fasciculation_count
 
 @app.route('/upload', methods=['POST'])
 def upload():
@@ -242,8 +274,8 @@ def upload():
         "adapt_learning_rate": True
     })
    
-    process_video(input_path, output_path, params)
-
+    fasciculation_count = process_video(input_path, output_path, params)
+    session['fasciculation_count'] = fasciculation_count
     session['processed_video'] = output_filename
 
     # Redirect to the result page 
@@ -251,10 +283,17 @@ def upload():
 
 @app.route('/result')
 def result():
-    processed_video = session.get('processed_video')
-    if not processed_video:
-        return "No processed video found", 404
-    return render_template('result.html', video_path=url_for('static', filename=f'processed/{processed_video}'))
+    # Fetch the processed video filename and fasciculation count from the session
+    processed_video = session.get('processed_video', None)
+    fasciculation_count = session.get('fasciculation_count', 0)
+
+    # Check if there's no processed video
+    if processed_video is None:
+        return redirect(url_for('index'))  # Redirect back to the main page if no video is processed
+
+    # Render the result template and pass the processed video and count
+    return render_template('result.html', video_url=processed_video, fasciculation_count=fasciculation_count)
+
 
 @app.route('/')
 def index():
@@ -312,7 +351,7 @@ def select_folder():
     'muscle_group': ['' for _ in files],
     'probe_orientation': ['' for _ in files]
     })
-    
+
     output_file = os.path.join(folder_path, "files_list.xlsx")
     df.to_excel(output_file, index=False)
 

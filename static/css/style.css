@@ -337,7 +337,7 @@ footer {
 
 .results-page .center-container a {
   background-color: #004085;
-  color: white;
+  color:#FFA500;
   padding: 10px 15px;
   text-decoration: none;
   border-radius: 5px;
@@ -346,5 +346,57 @@ footer {
 .results-page .center-container a:hover {
   background-color: #0069d9;
 }
+
+.progress {
+  background: rgba(255,255,255,0.1);
+  justify-content: flex-start;
+  border-radius: 100px;
+  align-items: center;
+  position: relative;
+  padding: 0 5px;
+  display: flex;
+  height: 40px;
+  width: 500px;
+}
+
+.wait-message {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #00c0b5;
+  text-align: center;
+  animation: blink 1.5s infinite;
+}
+
+/* Simple blinking animation */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.progress-value {
+  animation: load 4s linear infinite;
+  box-shadow: 0 10px 40px -10px #00c0b5;
+  border-radius: 100px;
+  background:#FFA500;
+  height: 10px;
+  width: 0;
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes load {
+  0% { width: 0; }
+  100% { width: 99%; }
+}
+
+@media (max-width: 600px) {
+  .custom-progress-bar {
+    width: 90%;
+  }
+}
+
+
 
 

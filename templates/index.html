@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +8,11 @@
 
     <!-- Load jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
 </head>
+
 <body>
 
     <div id="particles-js"></div> <!-- Particle Animation -->
@@ -22,22 +24,22 @@
         <!-- Single Video Upload Section -->
         <div class="section">
             <h2>Single Video Upload</h2>
-            <input type="file" id="singleVideoUpload" accept="video/mp4,video/webm,video/ogg,video/avi" onchange="previewSingleVideo()">
+            <input type="file" id="singleVideoUpload" accept="video/mp4,video/webm,video/ogg,video/avi">
 
-             <!-- Dropdowns for selection -->
-             <div class="dropdown-container">
+            <!-- Dropdowns for selection -->
+            <div class="dropdown-container">
                 <select class="dropdown" id="muscleGroup" required>
 
                     <option value="">Select Muscle Group</option>
-                    <option value="default">Default</option>
                     <option value="BB">Bicep Brachii</option>
                     <option value="MG">Medial Gastronemius</option>
                     <option value="TRAP">Trapezius</option>
                     <option value="TP">Thoracic Paraspinal</option>
                     <option value="ADM">Abductor Digiti Minimi</option>
+
                 </select>
 
-                <select class="dropdown" id="probeOrientation" required>
+                <select class="dropdown" id="probeOrientation" required onchange="previewSingleVideo()">
                     <option value="">Select Probe Orientation</option>
                     <option value="longitudinal">Longitudinal</option>
                     <option value="transverse">Transverse</option>
@@ -45,57 +47,83 @@
             </div>
 
             <button class="button" onclick="previewSingleVideos()">Upload Single Video</button>
-            
+
             <script>
-            function previewSingleVideos() {
-                const fileInput = document.getElementById('singleVideoUpload'); 
-                const muscleGroup = document.getElementById('muscleGroup').value;
-                const probeOrientation = document.getElementById('probeOrientation').value;
-                const file = fileInput.files[0];
-            
-                if (!file) {
-                    alert("Please select a video file first.");
-                    return;
-                }
-            
-                const formData = new FormData();
-                formData.append("video", file);
-                formData.append("muscle_group", muscleGroup);
-                formData.append("probe_orientation", probeOrientation);
-            
-                fetch("/upload", {
-                    method: "POST",
-                    body: formData
-                })
-                .then(response => {
-                    if (response.redirected) {
-                        window.location.href = response.url;  // Redirect to /result
-                    } else {
-                        return response.text().then(text => { throw new Error(text); });
+
+                // Function to preview the uploaded video
+                function previewSingleVideo() {
+                    var file = document.getElementById("singleVideoUpload").files[0];
+                    if (file) {
+                        var videoPlayer = document.getElementById("singleVideoPlayer");
+                        var objectURL = URL.createObjectURL(file);
+                        videoPlayer.src = objectURL;
+                        videoPlayer.style.display = "block";  // Show the video player
+                        videoPlayer.load();  // Required after changing sources dynamically
+
                     }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    alert("Error uploading or processing video: " + error.message);
-                });
-            }
+                }
+
+                function previewSingleVideos() {
+                    const fileInput = document.getElementById('singleVideoUpload');
+                    const muscleGroup = document.getElementById('muscleGroup').value;
+                    const probeOrientation = document.getElementById('probeOrientation').value;
+                    const file = fileInput.files[0];
+
+                    if (!file) {
+                        alert("Please select a video file first.");
+                        return;
+                    }
+
+                    const progressContainer = document.getElementById("progressBarContainer");
+                    const progressValue = progressContainer.querySelector(".progress-value");
+
+                    // Show the entire progress + message
+                    progressContainer.classList.remove("hidden");
+                    progressValue.style.animation = "none";
+                    void progressValue.offsetWidth; // force reflow
+                    progressValue.style.animation = "load 7s linear infinite";
+
+                    // Start upload
+                    const formData = new FormData();
+                    formData.append("video", file);
+                    formData.append("muscle_group", muscleGroup);
+                    formData.append("probe_orientation", probeOrientation);
+
+                    fetch("/upload", {
+                        method: "POST",
+                        body: formData
+                    })
+                        .then(response => {
+                            if (response.redirected) {
+                                window.location.href = response.url;
+                            } else {
+                                return response.text().then(text => { throw new Error(text); });
+                            }
+                        })
+                        .catch(error => {
+                            progressBar.classList.add('hidden'); // hide on error
+                            console.error("Error:", error);
+                            alert("Error uploading or processing video: " + error.message);
+                        });
+                }
+
             </script>
-            
+
             <!-- Video display window -->
             <div id="singleVideoPreview" style="margin-top: 15px;">
-                <video id="singleVideoPlayer" controls preload="metadata" width="640" height="360" style="display: none;">
+                <video id="singleVideoPlayer" controls preload="metadata" width="640" height="360"
+                    style="display: none;">
                     Your browser does not support HTML5 video.
                 </video>
             </div>
-        </div>
 
-            <!-- Progress Bar -->
-            <div id="uploadProgressWrapper" style="display: none;">
-                <label for="uploadProgress">Uploading Video:</label>
-                <progress id="uploadProgress" value="0" max="100"></progress>
-                <span id="uploadPercentage">0%</span>
+            <div id="progressBarContainer" class="hidden">
+                <div class="progress">
+                    <div class="progress-value"></div>
+                </div>
+                <div class="wait-message">Please wait...</div>
             </div>
-
+        </div>
 
         <!-- Bulk Video Upload Section -->
         <div class="section">
@@ -103,25 +131,28 @@
 
             <!-- Select Folder Button -->
             <button class="button" onclick="selectFolder()">Select Folder</button>
-            
-            <!-- Excel Upload Input -->
-            <input type="file" id="bulkExcelUpload" accept=".xlsx, .csv">
-            <button class="button" onclick="uploadExcel()">Upload Excel File</button>
-
-            <!-- Add a progress bar and estimated time text -->
-            <progress id="uploadProgress" value="0" max="100" style="width: 100%; display:none;"></progress>
-            <p id="estimatedTime" style="display:none;">Estimated time: <span id="timeLeft">Calculating...</span></p>
-
-            <!-- Excel Download Button -->
 
             <a id="downloadExcelLink" style="display:none;" download="files_list.xlsx">
                 <button class="download-button">Download Excel</button>
             </a>
             <p id="fillReminder" style="display:none; color: red; margin-top: 10px;">
-                Before submitting the Excel file for bulk processing, please complete the muscle group and probe orientation.            
+                Before submitting the Excel file for bulk processing, please complete the muscle group and probe
+                orientation.
             </p>
+
+            <!-- Excel Upload Input -->
+            <input type="file" id="bulkExcelUpload" accept=".xlsx, .csv">
+            <button class="button" onclick="uploadExcel()">Upload Excel File</button>
+
+            <!-- Progress bar + wait message (initially hidden) -->
+            <div id="progressBarContainer_bulk" class="hidden">
+                <div class="progress">
+                    <div class="progress-value"></div>
+                </div>
+                <div class="wait-message">Please wait...</div>
+            </div>
         </div>
-        
+
     </div>
 
     <!-- Footer -->
@@ -131,24 +162,9 @@
 
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             console.log("jQuery Loaded!");
         });
-
-        // Function to preview the uploaded video
-        function previewSingleVideo() {
-            var file = document.getElementById("singleVideoUpload").files[0];
-            if (file) {
-                var videoPlayer = document.getElementById("singleVideoPlayer");
-                var objectURL = URL.createObjectURL(file);
-                videoPlayer.src = objectURL;
-                videoPlayer.style.display = "block";  // Show the video player
-                videoPlayer.load();  // Required after changing sources dynamically
-
-            }
-        }
-
-        
 
 
         function uploadExcel() {
@@ -183,75 +199,57 @@
         });
 
         function selectFolder() {
-        fetch('/select-folder', { method: 'POST' })  // Send request to backend
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                let downloadLink = document.getElementById('downloadExcelLink');
-                downloadLink.href = data.file_url;
-                downloadLink.style.display = 'block';  // Show download button
-                document.getElementById("fillReminder").style.display = "block";
-            } else {
-                alert("Failed to generate Excel.");
-            }
-        })
-        .catch(error => console.error('Error:', error));
-}
-
-function uploadExcel() {
-    const fileInput = document.getElementById("bulkExcelUpload");
-    const file = fileInput.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const xhr = new XMLHttpRequest();
-
-    const progressBar = document.getElementById("uploadProgress");
-    const timeText = document.getElementById("estimatedTime");
-    const timeLeftSpan = document.getElementById("timeLeft");
-
-    progressBar.style.display = "block";
-    timeText.style.display = "block";
-
-    let startTime = Date.now();
-
-    xhr.upload.addEventListener("progress", function (event) {
-        if (event.lengthComputable) {
-            let percentComplete = (event.loaded / event.total) * 100;
-            progressBar.value = percentComplete;
-
-            let elapsedTime = (Date.now() - startTime) / 1000; // seconds
-            let estimatedTotalTime = (elapsedTime / percentComplete) * 100;
-            let timeRemaining = estimatedTotalTime - elapsedTime;
-
-            if (percentComplete < 100) {
-                timeLeftSpan.innerText = `${timeRemaining.toFixed(1)} seconds`;
-            } else {
-                timeLeftSpan.innerText = "Processing...";
-            }
+            fetch('/select-folder', { method: 'POST' })  // Send request to backend
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        let downloadLink = document.getElementById('downloadExcelLink');
+                        downloadLink.href = data.file_url;
+                        downloadLink.style.display = 'block';  // Show download button
+                        document.getElementById("fillReminder").style.display = "block";
+                    } else {
+                        alert("Failed to generate Excel.");
+                    }
+                })
+                .catch(error => console.error('Error:', error));
         }
-    });
 
-    xhr.onload = function () {
-        if (xhr.status === 200) {
-            alert("Upload complete!");
-            progressBar.style.display = "none";
-            timeText.style.display = "none";
-            window.location.href = "/results";  // Redirect to the results page
-        } else {
-            alert("Upload failed.");
+        function uploadExcel() {
+            const fileInput = document.getElementById("bulkExcelUpload");
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+             // Show progress bar and reset animation
+            const progressContainer = document.getElementById("progressBarContainer_bulk");
+            const progressValue = progressContainer.querySelector(".progress-value");
+
+            progressContainer.classList.remove("hidden");
+            progressValue.style.animation = "none";
+            void progressValue.offsetWidth; // force reflow
+            progressValue.style.animation = "load 3s linear infinite";
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    alert("Upload complete!");
+                    progressBar.style.display = "none";
+                    timeText.style.display = "none";
+                    window.location.href = "/results";  // Redirect to the results page
+                } else {
+                    alert("Upload failed.");
+                }
+            };
+
+            xhr.onerror = function () {
+                alert("An error occurred during upload.");
+            };
+
+            xhr.open("POST", "/upload-excel", true);
+            xhr.send(formData);
         }
-    };
+    </script>
+</body>
 
-    xhr.onerror = function () {
-        alert("An error occurred during upload.");
-    };
-
-    xhr.open("POST", "/upload-excel", true);
-    xhr.send(formData);
-}
-        </script>
-    </body>
 </html>

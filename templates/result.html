@@ -20,8 +20,7 @@
         <a href="{{ video_path }}" download="processed_video.avi">Download Processed Video</a>
     </div>
 
-    <p>Total Fasciculations Detected: {{ fasciculation_count }}</p>
-
+    <p>Total number of fasciculations detected: {{ fasciculation_count }}{% if fasciculation_count != 0 %} ± 1{% endif %}</p>
 
     <script src="https://cdn.jsdelivr.net/npm/particles.js">
          particlesJS("particles-js", {

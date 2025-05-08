@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Processed Video</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="results-page">
+    <div id="particles-js"></div>
+
+    <div class="logo-container">
+        <img src="/static/images/NEuroSense.png" alt="Logo" class="logo">
+    </div>
+
+    <div class="center-container">
+        <h1>Foreground Detection Result</h1>
+        <video width="640" height="480" controls>
+            <source src="" type="video/avi">
+            Your browser does not support the video tag.
+        </video>
+        <a href="" download="processed_video.avi">Download Processed Video</a>
+    </div>
+
+    <p>Total Fasciculations Detected: 5 ± 1</p>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/particles.js">
+         particlesJS("particles-js", {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: "#00c0b5" }, /* Green particles */
+                shape: { type: "circle" },
+                opacity: { value: 0.7, random: false },
+                size: { value: 3, random: true },
+                line_linked: { enable: true, distance: 150, color: "#00c0b5", opacity: 0.6, width: 1 },
+                move: { enable: true, speed: 2, direction: "none", random: false, straight: false }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: { enable: true, mode: "repulse" },
+                    onclick: { enable: true, mode: "push" }
+                },
+                modes: {
+                    repulse: { distance: 100, duration: 0.4 },
+                    push: { particles_nb: 4 }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

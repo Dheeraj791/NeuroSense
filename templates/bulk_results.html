@@ -2,27 +2,75 @@
 <html>
 <head>
     <title>Bulk Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
-    <h1>Processed Videos</h1>
 
-    {% if videos %}
-        {% for video in videos %}
-            <div>
-                <h3>{{ video.name }}</h3>
-                <video width="480" controls>
-                    <source src="{{ url_for('static', filename=video.path) }}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-                <br>
-                <!-- Download button -->
-                <a href="{{ url_for('static', filename=video.path) }}" download="{{ video.name }}">
-                    <button>Download</button>
-                </a>
-            </div>
-        {% endfor %}
-    {% else %}
-        <p>No videos processed.</p>
-    {% endif %}
-</body>
+<body>
+  <div class="bulk-result">
+    <!-- Logo Container -->
+      <div id="particles-js"></div>
+      <div class="logo-container">
+          <img src="{{ url_for('static', filename='images/NEuroSense.png') }}" alt="Logo" class="logo" height="50">
+      </div>
+
+    <!-- Main video player -->
+    <div class="video-player">
+      <div class="video-featured">
+        <div class="flex-video">
+          <video id="main-video" class="video-frame" controls>
+            <source src="{{ url_for('static', filename='processed_videos/files_list/' + videos[0]['path']) }}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+
+      <div class="download-all-container">
+        <a href="{{ url_for('static', filename='results/bulk_results.zip') }}" class="download-all-btn" download>
+            ⬇️ Download All Results
+        </a>
+    </div>
+
+      <div class="video-metadata-table-container">
+        <table class="video-metadata-table">
+          <thead>
+            <tr>
+              <th>File Name</th>
+              <th>Download</th>
+              <th>Fasciculation Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for video in videos %}
+              {% if loop.index <= 10 %}
+                  <tr class="video-row" data-url="{{ video['path'] }}">
+                    <td class="clickable-name">{{ video['name'] }}</td>
+                    <td><a href="{{ video['path'] }}" class="download-btn" download>Download</a></td>
+                  <td>{{ video['fasciculation_count'] }} Fas</td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      
+  </div>
+
+  <script>
+    document.querySelectorAll(".video-row").forEach(row => {
+      row.addEventListener("click", function () {
+        const videoUrl = this.getAttribute("data-url");
+        const videoPlayer = document.getElementById("main-video");
+        videoPlayer.querySelector("source").setAttribute("src", videoUrl);
+        videoPlayer.load();
+        videoPlayer.play();
+      });
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+  <script src="{{ url_for('static', filename='js/config.js') }}"></script>
+
+  </body>
+  <footer>
+    Designed and Developed by Dheeraj Pandey
+</footer>
 </html>

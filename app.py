@@ -9,10 +9,16 @@ import cv2
 import numpy as np
 import uuid
 from werkzeug.utils import secure_filename
+from flask import send_from_directory
+from flask import url_for
+from flask_cors import CORS
+import subprocess
+import ffmpeg
 
 
 app = Flask(__name__)
 app.secret_key = 'your_super_secret_key_here'  # Must be set for using session #dummy string used 
+CORS(app)  # Enable Cross-Origin Resource Sharing
 
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['PROCESSED_FOLDER'] = os.path.join('static', 'processed')
@@ -59,6 +65,32 @@ class ForegroundDetector:
         self.bg_subtractor.setBackgroundRatio(self.min_background_ratio)
         self.bg_subtractor.setNMixtures(self.num_gaussians)
         self.time = 0
+
+def optimize_mp4_for_browser(input_path):
+    """
+    Optimizes an MP4 file for browser playback (Fast Start) by overwriting the original file.
+    """
+    import os
+    import subprocess
+
+    temp_path = input_path.replace('.mp4', '_temp.mp4')
+
+    cmd = [
+        'ffmpeg',
+        '-i', input_path,
+        '-movflags', 'faststart',
+        '-c', 'copy',
+        temp_path
+    ]
+
+    try:
+        subprocess.run(cmd, check=True)
+        os.replace(temp_path, input_path)  # Overwrite original with optimized version
+        return input_path
+    except subprocess.CalledProcessError as e:
+        print(f"FFmpeg optimization failed: {e}")
+        return input_path
+
 
 def process_video(input_video_path, output_video_path, params):
     cap = cv2.VideoCapture(input_video_path)
@@ -159,6 +191,10 @@ def process_video(input_video_path, output_video_path, params):
 
     cap.release()
     out.release()
+    cv2.destroyAllWindows()
+
+    output_video_path = optimize_mp4_for_browser(output_video_path)
+
     return fasciculation_count
 
 @app.route('/upload', methods=['POST'])
@@ -276,24 +312,27 @@ def upload():
    
     fasciculation_count = process_video(input_path, output_path, params)
     session['fasciculation_count'] = fasciculation_count
-    session['processed_video'] = output_filename
+    session['processed'] = output_filename
 
     # Redirect to the result page 
     return redirect(url_for('result'))
 
+@app.route('/<path:filename>')
+def serve_video(filename):
+    return send_from_directory('processed', filename)
+
 @app.route('/result')
 def result():
-    # Fetch the processed video filename and fasciculation count from the session
-    processed_video = session.get('processed_video', None)
+    processed_video = session.get('processed', None)
     fasciculation_count = session.get('fasciculation_count', 0)
 
-    # Check if there's no processed video
     if processed_video is None:
-        return redirect(url_for('index'))  # Redirect back to the main page if no video is processed
+        return redirect(url_for('index'))
 
-    # Render the result template and pass the processed video and count
-    return render_template('result.html', video_url=processed_video, fasciculation_count=fasciculation_count)
-
+    # Convert the filename into a valid video URL
+    video_url = url_for('serve_video', filename=processed_video)
+    print(video_url)
+    return render_template('result.html', video_url=video_url, fasciculation_count=fasciculation_count)
 
 @app.route('/')
 def index():
@@ -429,7 +468,6 @@ def bulk_results():
     videos = session.get('processed_videos', [])
     print("Videos in session:", videos)  # Debug line
     return render_template('bulk_results.html', videos=videos)
-
 
 if __name__ == '__main__':
     app.run(debug=True)

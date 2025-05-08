@@ -346,12 +346,13 @@ footer {
 .hidden {
   display: none;
 }
+
 .results-page .grid-layout {
   display: grid;
   grid-template-columns: 2.2fr 2.2fr 2.2fr auto;
   grid-template-areas:
-      "filename muscle probe side"
-      "video video video side";
+    "filename muscle probe side"
+    "video video video side";
   gap: 20px;
   width: 95%;
   max-width: 1400px;
@@ -359,11 +360,20 @@ footer {
   margin-top: 160px;
 }
 
-.top-section:nth-child(1) { grid-area: filename; }
-.top-section:nth-child(2) { grid-area: muscle; }
-.top-section:nth-child(3) { grid-area: probe; }
+.top-section:nth-child(1) {
+  grid-area: filename;
+}
 
-.results-page .section, .top-section {
+.top-section:nth-child(2) {
+  grid-area: muscle;
+}
+
+.top-section:nth-child(3) {
+  grid-area: probe;
+}
+
+.results-page .section,
+.top-section {
   background-color: white;
   color: #000;
   padding: 20px;
@@ -391,7 +401,7 @@ footer {
   width: 100%;
   max-width: 640px;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .results-page .video-player-area a {
@@ -498,15 +508,16 @@ footer {
 }
 
 @media (max-width: 600px) {
+
   .video-metadata-table th,
   .video-metadata-table td {
-      padding: 10px 8px;
-      font-size: 0.85rem;
+    padding: 10px 8px;
+    font-size: 0.85rem;
   }
 
   .download-btn {
-      padding: 6px 12px;
-      font-size: 0.85rem;
+    padding: 6px 12px;
+    font-size: 0.85rem;
   }
 }
 
@@ -516,6 +527,7 @@ footer {
   border: 2px solid #0c7dc0;
   background-color: #e7f3fc;
 }
+
 .download-all-container {
   display: flex;
   justify-content: flex-end;
@@ -563,8 +575,6 @@ footer {
   color: #0c7dc0;
   font-size: 0.95rem;
 }
-
-
 
 @keyframes load {
   0% {

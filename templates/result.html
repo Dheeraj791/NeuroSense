@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Processed Video</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body class="results-page">
     <div id="particles-js"></div>
     <div class="logo-container">
@@ -21,18 +23,15 @@
             <video controls>
                 <!-- MP4 Source -->
                 <source src="{{ url_for('static', filename='processed' + video_url) }}" type="video/mp4">
-              
+
                 Your browser does not support the video tag.
             </video>
             <br>
-    
+
             <!-- Download Link -->
-            <a href="{{ url_for('static', filename='processed' + video_url) }}" download="processed_video.mp4">Download Processed Video</a>
-            
-          
+            <a href="{{ url_for('static', filename='processed' + video_url) }}" download="processed_video.mp4">Download
+                Processed Video</a>
         </div>
-    
-        
 
         <!-- Right vertical panels -->
         <div class="right-section">
@@ -50,4 +49,5 @@
     <script src="{{ url_for('static', filename='js/config.js') }}"></script>
 
 </body>
+
 </html>

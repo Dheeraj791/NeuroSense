@@ -48,7 +48,7 @@
                 </select>
             </div>
 
-            <button class="button" onclick="previewSingleVideos()">Upload Single Video</button>
+            <button class="button" onclick="validateForm()">Upload Single Video</button>
 
             <script>
 
@@ -60,9 +60,21 @@
                         var objectURL = URL.createObjectURL(file);
                         videoPlayer.src = objectURL;
                         videoPlayer.style.display = "block";  // Show the video player
-                        videoPlayer.load();  // Required after changing sources dynamically
+                        videoPlayer.load();
 
                     }
+                }
+
+                function validateForm() {
+                    const muscle = document.getElementById('muscleGroup').value;
+                    const probe = document.getElementById('probeOrientation').value;
+
+                    if (!muscle || !probe) {
+                        alert('Please select both Muscle Group and Probe Orientation.');
+                        return;
+                    }
+
+                    previewSingleVideos();
                 }
 
                 function previewSingleVideos() {
@@ -146,7 +158,6 @@
             <input type="file" id="bulkExcelUpload" accept=".xlsx, .csv" style="margin-top: 10px;">
             <button class="button" onclick="uploadExcel()">Upload Excel File</button>
 
-            <!-- Progress bar + wait message (initially hidden) -->
             <div id="progressBarContainer_bulk" class="hidden">
                 <div class="progress">
                     <div class="progress-value"></div>
@@ -176,7 +187,7 @@
             }
         }
 
-        
+
         function selectFolder() {
             fetch('/select-folder', { method: 'POST' })  // Send request to backend
                 .then(response => response.json())
@@ -201,7 +212,7 @@
             const formData = new FormData();
             formData.append("file", file);
 
-             // Show progress bar and reset animation
+            // Show progress bar and reset animation
             const progressContainer = document.getElementById("progressBarContainer_bulk");
             const progressValue = progressContainer.querySelector(".progress-value");
 
@@ -213,15 +224,15 @@
             const xhr = new XMLHttpRequest();
 
             xhr.onload = function () {
-            if (xhr.status === 200) {
-                alert("Upload complete!");
-                setTimeout(function () {
-                    window.location.href = "/results";  // Redirect to the results page
-                }, 300); 
-            } else {
-                alert("Upload failed.");
-            }
-        };
+                if (xhr.status === 200) {
+                    alert("Upload complete!");
+                    setTimeout(function () {
+                        window.location.href = "/results";  // Redirect to the results page
+                    }, 300);
+                } else {
+                    alert("Upload failed.");
+                }
+            };
 
             xhr.onerror = function () {
                 alert("An error occurred during upload.");

@@ -375,11 +375,10 @@ footer {
 .results-page .section,
 .top-section {
   background-color: white;
-  color: #000;
+  color: #1261A0;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  font-weight: 600;
   text-align: center;
   min-height: 175px;
   display: flex;
@@ -393,15 +392,13 @@ footer {
   grid-area: video;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
 
 .results-page .video-player-area video {
   width: 100%;
-  max-width: 640px;
+  max-width: 680px;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .results-page .video-player-area a {

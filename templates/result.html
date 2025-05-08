@@ -4,6 +4,27 @@
 <head>
     <title>Processed Video</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .graph-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            transition: transform 0.3s ease, z-index 0.3s ease;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .graph-container:hover {
+            transform: scale(1.5);
+            z-index: 10;
+        }
+
+        #graph {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 </head>
 
 <body class="results-page">
@@ -14,39 +35,75 @@
 
     <div class="grid-layout">
         <!-- Top horizontal strip -->
-        <div class="top-section section">Filename</div>
-        <div class="top-section section">Muscle group</div>
-        <div class="top-section section">Probe orientation</div>
+        <div class="top-section section">Filename: {{ filename }}</div>
+        <div class="top-section section">Muscle group: {{ muscle_group }}</div>
+        <div class="top-section section">Probe orientation: {{ probe_orientation }}</div>
 
         <!-- Main video content -->
         <div class="video-player-area">
             <video controls>
-                <!-- MP4 Source -->
                 <source src="{{ url_for('static', filename='processed' + video_url) }}" type="video/mp4">
-
                 Your browser does not support the video tag.
             </video>
             <br>
-
-            <!-- Download Link -->
-            <a href="{{ url_for('static', filename='processed' + video_url) }}" download="processed_video.mp4">Download
-                Processed Video</a>
+            <a href="{{ url_for('static', filename='processed' + video_url) }}" download="processed_video.mp4">
+                Download Processed Video
+            </a>
         </div>
 
         <!-- Right vertical panels -->
         <div class="right-section">
-            <div class="section">Detected Fasiculation count</div>
-            <div class="section">Graphical visualisation</div>
-            <div class="section">Detected FPS rate</div>
+            <div class="section">Detected Fasciculation Count: {{ fasciculation_count }}</div>
+
+            <div class="section">
+                <div class="graph-container">
+                    <div id="graph"></div>
+                </div>
+            </div>
+
+            <div class="section">Detected FPS Rate: {{ fps }}</div>
         </div>
     </div>
 
-    <!-- Footer -->
     <footer>
         Designed and Developed by Dheeraj Pandey
     </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
     <script src="{{ url_for('static', filename='js/config.js') }}"></script>
+
+    <script>
+        const allKeypoints = {{ keypoints | tojson }};
+        const frameStart = 500;
+        const frameEnd = Math.min(3000, frameStart + allKeypoints.length);
+
+        const frames = [];
+        const blobCounts = [];
+
+        for (let i = 0; i < allKeypoints.length; i++) {
+            frames.push(frameStart + i);
+            blobCounts.push(allKeypoints[i].length);
+        }
+
+        const trace = {
+            x: frames,
+            y: blobCounts,
+            mode: 'lines',
+            type: 'scatter',
+            name: 'Blobs per Frame',
+            line: { color: 'orange' },
+            marker: { size: 6 }
+        };
+
+        const layout = {
+            title: 'Blob Detection per Frame',
+            xaxis: { title: 'Frame Number' },
+            yaxis: { title: 'Blobs Detected' },
+            margin: { t: 40 }
+        };
+
+        Plotly.newPlot('graph', [trace], layout);
+    </script>
 
 </body>
 

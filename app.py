@@ -1,9 +1,8 @@
-from flask import Flask, request, send_file, redirect, url_for, render_template, session
+from flask import Flask, request, send_file, redirect, url_for, render_template, session ,jsonify
 import pandas as pd
 import os
 from tempfile import NamedTemporaryFile
 import multiprocessing
-from flask import Flask, request, jsonify, send_file
 from tkinter import filedialog, Tk
 import cv2
 import numpy as np
@@ -14,24 +13,35 @@ from flask import url_for
 from flask_cors import CORS
 import subprocess
 import ffmpeg
+import json
 
 
 app = Flask(__name__)
-app.secret_key = 'your_super_secret_key_here'  # Must be set for using session #dummy string used 
+app.secret_key = (
+    "your_super_secret_key_here"  # Must be set for using session #dummy string used
+)
 CORS(app)  # Enable Cross-Origin Resource Sharing
 
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
-app.config['PROCESSED_FOLDER'] = os.path.join('static', 'processed')
+app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
+app.config["PROCESSED_FOLDER"] = os.path.join("static", "processed")
 
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['PROCESSED_FOLDER'], exist_ok=True)
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+os.makedirs(app.config["PROCESSED_FOLDER"], exist_ok=True)
 
-upload_dir = 'uploads'
+upload_dir = "uploads"
 os.makedirs(upload_dir, exist_ok=True)  # Create if not exists
 
 
 class ForegroundDetector:
-    def __init__(self, num_gaussians, min_background_ratio, initial_variance, learning_rate, num_training_frames=500, adapt_learning_rate=True):
+    def __init__(
+        self,
+        num_gaussians,
+        min_background_ratio,
+        initial_variance,
+        learning_rate,
+        num_training_frames=500,
+        adapt_learning_rate=True,
+    ):
         self.num_gaussians = num_gaussians
         self.min_background_ratio = min_background_ratio
         self.initial_variance = initial_variance
@@ -39,8 +49,9 @@ class ForegroundDetector:
         self.num_training_frames = num_training_frames
         self.learning_rate = learning_rate
         self.time = 0
-        self.bg_subtractor = cv2.createBackgroundSubtractorMOG2(history=num_training_frames,
-                                                                detectShadows=False)
+        self.bg_subtractor = cv2.createBackgroundSubtractorMOG2(
+            history=num_training_frames, detectShadows=False
+        )
         self.bg_subtractor.setBackgroundRatio(min_background_ratio)
         self.bg_subtractor.setNMixtures(num_gaussians)
         self.bg_subtractor.setHistory(num_training_frames)
@@ -49,22 +60,24 @@ class ForegroundDetector:
 
     def initialize(self, frame):
         self.initialized = True
-    
+
     def step(self, frame, learning_rate=None):
         if not self.initialized:
             self.initialize(frame)
-    
+
         self.time += 1
         # Apply the background subtractor
         fg_mask = self.bg_subtractor.apply(frame, learningRate=learning_rate)
         return fg_mask
-    
+
     def reset(self):
-        self.bg_subtractor = cv2.createBackgroundSubtractorMOG2(history=self.num_training_frames,
-                                                                detectShadows=False)
+        self.bg_subtractor = cv2.createBackgroundSubtractorMOG2(
+            history=self.num_training_frames, detectShadows=False
+        )
         self.bg_subtractor.setBackgroundRatio(self.min_background_ratio)
         self.bg_subtractor.setNMixtures(self.num_gaussians)
         self.time = 0
+
 
 def optimize_mp4_for_browser(input_path):
     """
@@ -73,14 +86,17 @@ def optimize_mp4_for_browser(input_path):
     import os
     import subprocess
 
-    temp_path = input_path.replace('.mp4', '_temp.mp4')
+    temp_path = input_path.replace(".mp4", "_temp.mp4")
 
     cmd = [
-        'ffmpeg',
-        '-i', input_path,
-        '-movflags', 'faststart',
-        '-c', 'copy',
-        temp_path
+        "ffmpeg",
+        "-i",
+        input_path,
+        "-movflags",
+        "faststart",
+        "-c",
+        "copy",
+        temp_path,
     ]
 
     try:
@@ -109,7 +125,7 @@ def process_video(input_video_path, output_video_path, params):
     window_size = int(fps * twitch_time_sec)
 
     # Use MP4 codec
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
 
     # Blob detector
@@ -128,9 +144,12 @@ def process_video(input_video_path, output_video_path, params):
     frame_count = 0
     window_frame_counter = 0
     blob_found_in_window = False
-    prev_frame_blob_found = False  # To track if blobs were detected in the previous frame
+    prev_frame_blob_found = (
+        False  # To track if blobs were detected in the previous frame
+    )
     prev_window_had_blob = False
     fasciculation_count = 0
+    all_keypoints = []  # To collect all keypoints
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -147,7 +166,9 @@ def process_video(input_video_path, output_video_path, params):
 
             # Detect blobs in the current frame
             if len(keypoints) > 4:
-                current_frame_blob_found = True  # More than one blob in the current frame
+                current_frame_blob_found = (
+                    True  # More than one blob in the current frame
+                )
 
             # Only consider the blobs as found if blobs were detected in both the current and the previous frame
             if current_frame_blob_found and prev_frame_blob_found:
@@ -159,6 +180,8 @@ def process_video(input_video_path, output_video_path, params):
                 x, y = int(k.pt[0]), int(k.pt[1])
                 centroids.append((x, y))
                 cv2.circle(frame, (x, y), 5, (0, 0, 255), -1)  # Red dot
+
+            all_keypoints.append(centroids)
 
             # Connect blobs with lines (one line for each pair)
             for i in range(len(centroids) - 1):  # Ensure we don't go out of bounds
@@ -195,220 +218,276 @@ def process_video(input_video_path, output_video_path, params):
 
     output_video_path = optimize_mp4_for_browser(output_video_path)
 
-    return fasciculation_count
+    return fasciculation_count, all_keypoints, fps
 
-@app.route('/upload', methods=['POST'])
+
+@app.route("/upload", methods=["POST"])
 def upload():
-    if 'video' not in request.files:
+    if "video" not in request.files:
         return "No video file provided", 400
 
-    video = request.files['video']
-    muscle_group = request.form.get('muscle_group')
-    probe_orientation = request.form.get('probe_orientation')
+    video = request.files["video"]
+    muscle_group = request.form.get("muscle_group")
+    probe_orientation = request.form.get("probe_orientation")
+
     filename = secure_filename(video.filename)
-    input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    session['filename'] = filename  
+    input_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
     unique_id = str(uuid.uuid4())
     base, ext = os.path.splitext(filename)
     saved_name = f"{base}_{unique_id}{ext}"
-    input_path = os.path.join(app.config['UPLOAD_FOLDER'], saved_name)
+    input_path = os.path.join(app.config["UPLOAD_FOLDER"], saved_name)
     video.save(input_path)
 
     output_filename = f"processed_{unique_id}.mp4"  # not .avi
-    output_path = os.path.join(app.config['PROCESSED_FOLDER'], output_filename)
+    output_path = os.path.join(app.config["PROCESSED_FOLDER"], output_filename)
 
     # Define parameter map
     param_map = {
-        ('BB', 'longitudinal'): {
+        ("BB", "longitudinal"): {
             "num_gaussians": 5,
             "min_background_ratio": 0.85,
-            "initial_variance": 30 * 2,
+            "initial_variance": 30 * 30,
             "learning_rate": 0.05,
             "num_training_frames": 500,
-            "adapt_learning_rate": True
+            "adapt_learning_rate": True,
         },
-        ('BB', 'transverse'): {
+        ("BB", "transverse"): {
             "num_gaussians": 3,
             "min_background_ratio": 0.80,
-            "initial_variance": 30 * 2,
+            "initial_variance": 30 * 30,
             "learning_rate": 0.05,
             "num_training_frames": 500,
-            "adapt_learning_rate": True
+            "adapt_learning_rate": True,
         },
-        ('MG', 'transverse'): {
+        ("MG", "transverse"): {
             "num_gaussians": 3,
             "min_background_ratio": 0.85,
-            "initial_variance": 30 * 2,
+            "initial_variance": 30 * 30,
             "learning_rate": 0.05,
             "num_training_frames": 500,
-            "adapt_learning_rate": True
+            "adapt_learning_rate": True,
         },
-        ('MG', 'longitudinal'): {
+        ("MG", "longitudinal"): {
             "num_gaussians": 5,
             "min_background_ratio": 0.90,
-            "initial_variance": 30 * 2,
+            "initial_variance": 30 * 30,
             "learning_rate": 0.05,
             "num_training_frames": 500,
-            "adapt_learning_rate": True
+            "adapt_learning_rate": True,
         },
-        ('TRAP', 'transverse'): {
+        ("TRAP", "transverse"): {
             "num_gaussians": 4,
             "min_background_ratio": 0.90,
-            "initial_variance": 30 * 2,
+            "initial_variance": 30 * 30,
             "learning_rate": 0.05,
             "num_training_frames": 500,
-            "adapt_learning_rate": True
+            "adapt_learning_rate": True,
         },
-        ('TRAP', 'longitudinal'): {
+        ("TRAP", "longitudinal"): {
             "num_gaussians": 3,
             "min_background_ratio": 0.90,
-            "initial_variance": 30 * 2,
+            "initial_variance": 30 * 30,
             "learning_rate": 0.5,
             "num_training_frames": 500,
-            "adapt_learning_rate": True
+            "adapt_learning_rate": True,
         },
-        ('RA', 'transverse'): {
+        ("RA", "transverse"): {
             "num_gaussians": 5,
             "min_background_ratio": 0.90,
-            "initial_variance": 30 * 2,
+            "initial_variance": 30 * 30,
             "learning_rate": 0.05,
             "num_training_frames": 500,
-            "adapt_learning_rate": True
+            "adapt_learning_rate": True,
         },
-        ('RA', 'longitudinal'): {
+        ("RA", "longitudinal"): {
             "num_gaussians": 5,
             "min_background_ratio": 0.90,
-            "initial_variance": 30 * 2,
+            "initial_variance": 30 * 30,
             "learning_rate": 0.05,
             "num_training_frames": 500,
-            "adapt_learning_rate": True
+            "adapt_learning_rate": True,
         },
-        ('TP', 'transverse'): {
+        ("TP", "transverse"): {
             "num_gaussians": 3,
             "min_background_ratio": 0.90,
-            "initial_variance": 30 * 2,
+            "initial_variance": 30 * 30,
             "learning_rate": 0.005,
             "num_training_frames": 100,
-            "adapt_learning_rate": True
+            "adapt_learning_rate": True,
         },
-        ('TP', 'longitudinal'): {
+        ("TP", "longitudinal"): {
             "num_gaussians": 3,
             "min_background_ratio": 0.90,
-            "initial_variance": 30 * 2,
+            "initial_variance": 30 * 30,
             "learning_rate": 0.005,
             "num_training_frames": 300,
-            "adapt_learning_rate": True
-        }
+            "adapt_learning_rate": True,
+        },
     }
 
-    params = param_map.get((muscle_group, probe_orientation), {
-        "num_gaussians": 5,
-        "min_background_ratio": 0.7,
-        "initial_variance": 30,
-        "learning_rate": 0.01,
-        "num_training_frames": 500,
-        "adapt_learning_rate": True
-    })
-   
-    fasciculation_count = process_video(input_path, output_path, params)
-    session['fasciculation_count'] = fasciculation_count
-    session['processed'] = output_filename
+    params = param_map.get(
+        (muscle_group, probe_orientation),
+        {
+            "num_gaussians": 5,
+            "min_background_ratio": 0.7,
+            "initial_variance": 30 * 30,
+            "learning_rate": 0.01,
+            "num_training_frames": 500,
+            "adapt_learning_rate": True,
+        },
+    )
 
-    # Redirect to the result page 
-    return redirect(url_for('result'))
+    print("Retrieved parameters:", params)
 
-@app.route('/<path:filename>')
+    fasciculation_count, all_keypoints, fps = process_video(
+        input_path, output_path, params
+    )
+    session["fasciculation_count"] = fasciculation_count
+    session["processed"] = output_filename
+    session["all_keypoints"] = json.dumps(all_keypoints)
+    session["muscle_group"] = muscle_group
+    session["probe_orientation"] = probe_orientation
+    session["fps"] = fps
+
+    # Redirect to the result page
+    return redirect(url_for("result"))
+
+
+@app.route("/<path:filename>")
 def serve_video(filename):
-    return send_from_directory('processed', filename)
+    return send_from_directory("processed", filename)
 
-@app.route('/result')
+
+@app.route("/result")
 def result():
-    processed_video = session.get('processed', None)
-    fasciculation_count = session.get('fasciculation_count', 0)
+    processed_video = session.get("processed", None)
+    fasciculation_count = session.get("fasciculation_count", 0)
+    all_keypoints_json = session.get("all_keypoints", "[]")
+    filename = session.get('filename')
+    muscle_group = session.get('muscle_group')
+    probe_orientation = session.get('probe_orientation')
+    fps = session.get('fps')
+
+    # Deserialize all_keypoints from JSON
+    all_keypoints = json.loads(all_keypoints_json)
 
     if processed_video is None:
-        return redirect(url_for('index'))
+        return redirect(url_for("index"))
 
     # Convert the filename into a valid video URL
-    video_url = url_for('serve_video', filename=processed_video)
-    print(video_url)
-    return render_template('result.html', video_url=video_url, fasciculation_count=fasciculation_count)
+    video_url = url_for("serve_video", filename=processed_video)
 
-@app.route('/')
+      # Muscle group mapping
+    muscle_group_map = {
+        'BB': 'Biceps Brachii',
+        'MG': 'Medial Gastrocnemius',
+        'TP': 'Thoracic Paraspinal',
+        'ADM': 'Abductor Digiti Minimi',
+        'TRAP': 'Trapezius',
+        'RA': 'Rectus Abdominis'
+    }
+    muscle_group_label = muscle_group_map.get(muscle_group, muscle_group) 
+
+
+    return render_template(
+        "result.html",
+        video_url=video_url,
+        fasciculation_count=fasciculation_count,
+        keypoints=all_keypoints,
+        filename=filename,
+        muscle_group=muscle_group_label,
+        probe_orientation=probe_orientation,
+        fps=fps
+    )
+
+
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
-@app.route('/download_template', methods=['GET'])
+
+@app.route("/download_template", methods=["GET"])
 def download_template():
     try:
         # Define the columns for the template
         columns = ["trial_name", "muscle_group", "probe_orientation", "file_path"]
-        
+
         # Create an empty DataFrame
         df = pd.DataFrame(columns=columns)
-    
+
         # Create a temporary file to save the Excel template
-        with NamedTemporaryFile(delete=False, suffix='.xlsx') as temp_file:
+        with NamedTemporaryFile(delete=False, suffix=".xlsx") as temp_file:
             template_path = temp_file.name
             df.to_excel(template_path, index=False)
-        
+
         # Return the file to the user for download
-        return send_file(template_path, as_attachment=True, download_name="video_upload_template.xlsx")
-    
+        return send_file(
+            template_path,
+            as_attachment=True,
+            download_name="video_upload_template.xlsx",
+        )
+
     except Exception as e:
         print(f"Error generating Excel file: {e}")
         return "Error generating Excel file", 500
-    
+
     finally:
         # Clean up the temporary file after sending it
         if os.path.exists(template_path):
             os.remove(template_path)
 
-          
+
 def select_folder_gui():
     root = Tk()
-    root.withdraw()  
-    folder_path = filedialog.askdirectory()  
+    root.withdraw()
+    folder_path = filedialog.askdirectory()
     return folder_path
 
-@app.route('/select-folder', methods=['POST'])
+
+@app.route("/select-folder", methods=["POST"])
 def select_folder():
     # Run Tkinter folder selection in a separate process
     with multiprocessing.Pool(1) as pool:
         folder_path = pool.apply(select_folder_gui)
 
     if not folder_path:
-        return jsonify({'success': False, 'message': 'No folder selected'})
+        return jsonify({"success": False, "message": "No folder selected"})
 
     files = os.listdir(folder_path)  # Get all file names
     file_paths = [os.path.join(folder_path, file) for file in files]
 
     # Save to Excel
-    df = pd.DataFrame({
-    'File Name': files,
-    'Full_Path': file_paths,
-    'muscle_group': ['' for _ in files],
-    'probe_orientation': ['' for _ in files]
-    })
+    df = pd.DataFrame(
+        {
+            "File Name": files,
+            "Full_Path": file_paths,
+            "muscle_group": ["" for _ in files],
+            "probe_orientation": ["" for _ in files],
+        }
+    )
 
     output_file = os.path.join(folder_path, "files_list.xlsx")
     df.to_excel(output_file, index=False)
 
-    return jsonify({'success': True, 'file_url': f'/download-excel?path={output_file}'})
+    return jsonify({"success": True, "file_url": f"/download-excel?path={output_file}"})
 
-@app.route('/download-excel')
+
+@app.route("/download-excel")
 def download_excel():
-    file_path = request.args.get('path')
+    file_path = request.args.get("path")
     return send_file(file_path, as_attachment=True)
 
-@app.route('/upload-excel', methods=['POST'])
+
+@app.route("/upload-excel", methods=["POST"])
 def upload_excel():
-    file = request.files['file']
+    file = request.files["file"]
     if not file:
-        return jsonify({'success': False, 'message': 'No file uploaded'})
+        return jsonify({"success": False, "message": "No file uploaded"})
 
     # Create upload directory
-    upload_dir = 'uploads'
+    upload_dir = "uploads"
     os.makedirs(upload_dir, exist_ok=True)
 
     # Save uploaded Excel file
@@ -417,57 +496,60 @@ def upload_excel():
     file.save(file_path)
 
     # Read Excel or CSV
-    if filename.endswith('.csv'):
+    if filename.endswith(".csv"):
         df = pd.read_csv(file_path)
     else:
         df = pd.read_excel(file_path)
 
     # Define GMM parameters
     params = {
-        'num_gaussians': 5,
-        'min_background_ratio': 0.7,
-        'initial_variance': 15.0,
-        'learning_rate': 0.01,
-        'num_training_frames': 500,
-        'adapt_learning_rate': True
+        "num_gaussians": 5,
+        "min_background_ratio": 0.7,
+        "initial_variance": 15.0,
+        "learning_rate": 0.01,
+        "num_training_frames": 500,
+        "adapt_learning_rate": True,
     }
 
     # Create a unique subfolder for this upload in static
     base_name = os.path.splitext(filename)[0]
-    subfolder_path = os.path.join('static', 'processed_videos', base_name)
+    subfolder_path = os.path.join("static", "processed_videos", base_name)
     os.makedirs(subfolder_path, exist_ok=True)
 
     processed_videos = []
 
     # Process each row in Excel
     for idx, row in df.iterrows():
-        video_path = row['Full_Path']
-        muscle_group = row['muscle_group']
-        probe_orientation = row['probe_orientation']
+        video_path = row["Full_Path"]
+        muscle_group = row["muscle_group"]
+        probe_orientation = row["probe_orientation"]
 
-        output_name = f"{os.path.splitext(os.path.basename(video_path))[0]}_processed.mp4"
+        output_name = (
+            f"{os.path.splitext(os.path.basename(video_path))[0]}_processed.mp4"
+        )
         output_path = os.path.join(subfolder_path, output_name)
 
         print(f"Processing: {video_path}")
         process_video(video_path, output_path, params)
 
         # Append relative path for frontend
-        processed_videos.append({
-            'path': f"processed_videos/{base_name}/{output_name}",
-            'name': output_name
-        })
+        processed_videos.append(
+            {"path": f"processed_videos/{base_name}/{output_name}", "name": output_name}
+        )
 
     print("Processed videos:", processed_videos)
 
     # Render the results page
-    session['processed_videos'] = processed_videos
-    return redirect(url_for('bulk_results'))
+    session["processed_videos"] = processed_videos
+    return redirect(url_for("bulk_results"))
 
-@app.route('/results')
+
+@app.route("/results")
 def bulk_results():
-    videos = session.get('processed_videos', [])
+    videos = session.get("processed_videos", [])
     print("Videos in session:", videos)  # Debug line
-    return render_template('bulk_results.html', videos=videos)
+    return render_template("bulk_results.html", videos=videos)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(debug=True)

@@ -529,15 +529,16 @@ def upload_excel():
         )
         output_path = os.path.join(subfolder_path, output_name)
 
-        print(f"Processing: {video_path}")
-        process_video(video_path, output_path, params)
+        fasciculation_count, fps, _ = process_video(video_path, output_path, params)
 
-        # Append relative path for frontend
-        processed_videos.append(
-            {"path": f"processed_videos/{base_name}/{output_name}", "name": output_name}
-        )
+        processed_videos.append({
+        "path": f"processed_videos/{base_name}/{output_name}",
+        "name": output_name,
+        "fasciculation_count": fasciculation_count,
+        "fps": fps,
+    })
 
-    print("Processed videos:", processed_videos)
+        print("Processed videos:", processed_videos)
 
     # Render the results page
     session["processed_videos"] = processed_videos

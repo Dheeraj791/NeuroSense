@@ -19,8 +19,7 @@
       <div class="video-featured">
         <div class="flex-video">
           <video id="main-video" class="video-frame" controls>
-            <source src="{{ url_for('static', filename='processed_videos/files_list/' + videos[0]['path']) }}"
-              type="video/mp4">
+            <source src="{{ url_for('static', filename=videos[0]['path']) }}" type="video/mp4">
             Your browser does not support the video tag.
           </video>
         </div>
@@ -39,21 +38,27 @@
               <th>File Name</th>
               <th>Download</th>
               <th>Fasciculation Count</th>
+              <th>Frame rate</th>
             </tr>
           </thead>
           <tbody>
             {% for video in videos %}
-            {% if loop.index <= 10 %} <tr class="video-row" data-url="{{ video['path'] }}">
-              <td class="clickable-name">{{ video['name'] }}</td>
-              <td><a href="{{ video['path'] }}" class="download-btn" download>Download</a></td>
-              <td>{{ video['fasciculation_count'] }} Fas</td>
-              </tr>
+              {% if loop.index <= 10 %}
+              <tr class="video-row" data-url="{{ url_for('static', filename=video['path']) }}">
+                <td class="clickable-name">{{ video['name'] }}</td>
+                <td><a href="{{ url_for('static', filename=video['path']) }}" class="download-btn" download>Download</a></td>
+                <td>
+                  {{ video['fasciculation_count'] if video['fasciculation_count'] is not none else '#' }} Fas
+                </td>
+                <td>
+                  {{ video['fps'] if video['fps'] is not none else '#' }} FPS
+                </td>
+                </tr>
               {% endif %}
-              {% endfor %}
+            {% endfor %}
           </tbody>
         </table>
       </div>
-
     </div>
 
     <script>
@@ -69,8 +74,8 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
     <script src="{{ url_for('static', filename='js/config.js') }}"></script>
-
 </body>
+
 <footer>
   Designed and Developed by Dheeraj Pandey
 </footer>

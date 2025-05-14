@@ -1,7 +1,7 @@
 
-<img src="static/images/NEuroSense.png" alt="Logo" width="180">
-
-
+<p align="center">
+  <img src="static/images/NEuroSense.png" alt="Logo" width="180" style="border: 3px ridge #ccc; padding: 5px;">
+</p>
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
@@ -11,13 +11,25 @@
 
 NeuroSense - A Gaussian mixture model based tool for foreground detection of involuntary twitch movements called as fasiculation.
 
+## Motivation
+
+
 
 ## Documentation
 
 Documentation for Neurosense is available on Read the Docs.
 
 
+## Product Highlights
+
+<p align="center">
+  <img src="static/images/image_product.png" alt="Product Preview" width="800" height="450" style="border: 4px ridge #ccc;">
+</p>
+
+
+
 ## Architecture
+
 ## Installation
 
 Follow the steps below to set up and run the Flask application locally:

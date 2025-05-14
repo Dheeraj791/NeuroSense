@@ -1,83 +1,209 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <title>Bulk Results</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroSense - Bulk Results</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(120deg, #2E3A59, #4A576E);
+      color: #D5FF72;
+      overflow-x: hidden;
+    }
+
+    #particles-js {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      top: 0;
+      left: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 1100px;
+      margin: auto;
+      padding: 2em;
+    }
+
+    .logo-container {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      transition: transform 0.3s ease-in-out;
+      z-index: 9999;
+      margin-bottom: 20px;
+      /* Gives a little space between logo and the sections */
+
+    }
+
+    /* Logo styling */
+    .logo {
+      max-width: 150px;
+      height: auto;
+      cursor: pointer;
+      transition: transform 0.3s ease-in-out;
+      border-style: ridge;
+    }
+
+    /* Hover effect to zoom in */
+    .logo-container:hover .logo {
+      transform: scale(1.2);
+    }
+
+    .video-section,
+    .table-section {
+      background: rgba(56, 68, 95, 0.85);
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      padding: 2em;
+      margin-bottom: 2em;
+      animation: fadeInUp 1s ease;
+      margin-top: 7em;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    .download-all-btn {
+      display: inline-block;
+      background: #D5FF72;
+      color: #2E3A59;
+      padding: 0.75em 1.5em;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-top: 1em;
+      text-decoration: none;
+    }
+
+    .video-metadata-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2em;
+    }
+
+    .video-metadata-table th,
+    .video-metadata-table td {
+      padding: 1em;
+      text-align: left;
+      color: #fff;
+      border-bottom: 1px solid #555;
+      table-layout: fixed;
+
+    }
+
+    .video-radio {
+      display: block;
+      margin: 0 auto;
+      /* Center radio button */
+      width: 100%;
+    }
+
+    .video-row:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+    }
+
+    .clickable-name {
+      color: #D5FF72;
+      text-decoration: underline;
+    }
+
+    footer {
+      text-align: center;
+      color: #aaa;
+      margin-bottom: .5em;
+      position: relative;
+      margin-top: 4em;
+      ;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
 </head>
 
 <body>
-  <div class="bulk-result">
-    <!-- Logo Container -->
-    <div id="particles-js"></div>
-    <div class="logo-container">
-      <img src="{{ url_for('static', filename='images/NEuroSense.png') }}" alt="Logo" class="logo" height="50">
-    </div>
+  <div id="particles-js"></div>
 
-    <!-- Main video player -->
-    <div class="video-player">
-      <div class="video-featured">
-        <div class="flex-video">
-          <video id="main-video" class="video-frame" controls>
-            <source src="{{ url_for('static', filename=videos[0]['path']) }}" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        </div>
-      </div>
+  <div class="container">
+    <section class="video-section">
+      <h2 style="color: #fff;">📽️ Featured Diagnostic Video</h2>
+      <video id="main-video" controls>
+        <source src="{{ url_for('static', filename=videos[0]['path']) }}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <a href="{{ url_for('static', filename='excel/' ~ excel_filename) }}" class="download-all-btn" download>
+        ⬇️ Download All Results
+      </a>
+    </section>
 
-      <div class="download-all-container">
-        <a href="{{ url_for('static', filename='results/bulk_results.zip') }}" class="download-all-btn" download>
-          ⬇️ Download All Results
-        </a>
-      </div>
-
-      <div class="video-metadata-table-container">
-        <table class="video-metadata-table">
-          <thead>
-            <tr>
-              <th>File Name</th>
-              <th>Download</th>
-              <th>Fasciculation Count</th>
-              <th>Frame rate</th>
+    <section class="table-section">
+      <h2 style="color: #fff;">📋 Video Summary Table</h2>
+      <table class="video-metadata-table">
+        <thead>
+          <tr>
+            <th>Select</th>
+            <th>File Name</th>
+            <th>Download</th>
+            <th>Fasciculation Count</th>
+            <th>Frame Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for video in videos %}
+          {% if loop.index <= 10 %} <tr class="video-row" data-url="{{ url_for('static', filename=video['path']) }}">
+            <td><input type="radio" name="videoSelect" class="video-radio" value="{{ video['path'] }}"></td>
+            <td class="clickable-name">{{ video['name'] }}</td>
+            <td><a href="{{ url_for('static', filename=video['path']) }}" class="download-btn" download>Download</a>
+            </td>
+            <td>{{ video['fasciculation_count'] if video['fasciculation_count'] is not none else '#' }} Fas</td>
+            <td>{{ video['fps'] if video['fps'] is not none else '#' }} FPS</td>
             </tr>
-          </thead>
-          <tbody>
-            {% for video in videos %}
-              {% if loop.index <= 10 %}
-              <tr class="video-row" data-url="{{ url_for('static', filename=video['path']) }}">
-                <td class="clickable-name">{{ video['name'] }}</td>
-                <td><a href="{{ url_for('static', filename=video['path']) }}" class="download-btn" download>Download</a></td>
-                <td>
-                  {{ video['fasciculation_count'] if video['fasciculation_count'] is not none else '#' }} Fas
-                </td>
-                <td>
-                  {{ video['fps'] if video['fps'] is not none else '#' }} FPS
-                </td>
-                </tr>
-              {% endif %}
+            {% endif %}
             {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
+        </tbody>
 
-    <script>
-      document.querySelectorAll(".video-row").forEach(row => {
-        row.addEventListener("click", function () {
-          const videoUrl = this.getAttribute("data-url");
-          const videoPlayer = document.getElementById("main-video");
-          videoPlayer.querySelector("source").setAttribute("src", videoUrl);
-          videoPlayer.load();
-          videoPlayer.play();
-        });
+      </table>
+    </section>
+
+    <footer>
+      Designed and Developed by Dheeraj Pandey
+    </footer>
+  </div>
+
+  <script>
+    document.querySelectorAll(".video-row").forEach(row => {
+      row.addEventListener("click", function () {
+        const videoUrl = this.getAttribute("data-url");
+        const videoPlayer = document.getElementById("main-video");
+        videoPlayer.querySelector("source").setAttribute("src", videoUrl);
+        videoPlayer.load();
+        videoPlayer.play();
       });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
-    <script src="{{ url_for('static', filename='js/config.js') }}"></script>
+    });
+  </script>
+      <script src="{{ url_for('static', filename='js/config.js') }}"></script>
 </body>
-
-<footer>
-  Designed and Developed by Dheeraj Pandey
-</footer>
-
 </html>

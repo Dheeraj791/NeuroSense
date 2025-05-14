@@ -1,11 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Processed Video</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroSense Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
     <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(120deg, #2E3A59, #4A576E);
+            color: #D5FF72;
+            overflow-x: hidden;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            top: 0;
+            left: 0;
+        }
+
+        .hero,
+        section {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            flex-direction: column;
+            text-align: center;
+            animation: fadeIn 2s ease;
+        }
+
+        .hero h1 {
+            font-size: 3em;
+            font-weight: 800;
+            margin-bottom: 0.3em;
+        }
+
+        .hero p {
+            font-size: 1.2em;
+            color: #ffffffcc;
+        }
+
+        .hero .buttons {
+            margin-top: 1.5em;
+        }
+
+        .btn {
+            background: #D5FF72;
+            color: #2E3A59;
+            padding: 0.75em 1.5em;
+            margin: 0 0.5em;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #c0e660;
+        }
+
+        section {
+            padding: 4em 2em;
+        }
+
+        .video-section,
+        .graph-section,
+        .results-section {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #38445F;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            padding: 2em;
+            margin-bottom: 2em;
+            animation: fadeInUp 1s ease;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            margin-bottom: 1em;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .summary-box {
+            background: #2e3a59;
+            padding: 1em;
+            border-radius: 10px;
+            line-height: 1.8;
+            color: #fff;
+        }
+
         .graph-container {
             position: relative;
             width: 100%;
@@ -20,90 +123,126 @@
             z-index: 10;
         }
 
-        #graph {
+        #plot {
             width: 100%;
             height: 100%;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
 
-<body class="results-page">
+<body>
     <div id="particles-js"></div>
-    <div class="logo-container">
-        <img src="{{ url_for('static', filename='images/NEuroSense.png') }}" alt="Logo" class="logo" height="50">
-    </div>
 
-    <div class="grid-layout">
-        <!-- Top horizontal strip -->
-        <div class="top-section section">Filename: {{ filename }}</div>
-        <div class="top-section section">Muscle group: {{ muscle_group }}</div>
-        <div class="top-section section">Probe orientation: {{ probe_orientation }}</div>
-
-        <!-- Main video content -->
-        <div class="video-player-area">
-            <video controls>
-                <source src="{{ url_for('static', filename='processed' + video_url) }}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-            <br>
-            <a href="{{ url_for('static', filename='processed' + video_url) }}" download="processed_video.mp4">
-                Download Processed Video
-            </a>
-        </div>
-
-        <!-- Right vertical panels -->
-        <div class="right-section">
-            <div class="section">Detected Fasciculation Count: {{ fasciculation_count }}</div>
-
-            <div class="section">
-                <div class="graph-container">
-                    <div id="graph"></div>
-                </div>
-            </div>
-
-            <div class="section">Detected FPS Rate: {{ fps }}</div>
+    <div class="hero">
+        <h1>NEUROSENSE</h1>
+        <p>Early Detection, Smarter Care</p>
+        <div class="buttons">
+            <button class="btn" onclick="scrollToSection('video')">Start Analysis</button>
+            <button class="btn" onclick="scrollToSection('results')">View Results</button>
         </div>
     </div>
 
-    <footer>
+    <section id="video" class="video-section">
+        <div class="section-title">📽️ Diagnostic Video</div>
+        <video controls>
+            <source src="{{ url_for('static', filename='processed' + video_url) }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <p style="margin-top: 1em; color: #ffffffcc;">FPS: {{ fps }} | Fasciculations Detected: {{ fasciculation_count }}</p>
+        <br>
+        <a href="{{ url_for('static', filename='processed' + video_url) }}" download="processed_video.mp4" class="btn">
+            Download Processed Video
+        </a>
+
+    </section>
+
+    <section id="graph" class="graph-section">
+        <div class="section-title">📊 Fasciculation Events Over Time</div>
+        <div class="graph-container">
+            <div id="plot"></div>
+        </div>
+    </section>
+
+    <section id="results" class="results-section">
+        <div class="section-title">📋 Summary Report</div>
+        <div class="summary-box">
+            Filename: {{filename}}<br>
+            Muscle Group: {{muscle_group}} <br>
+            Fasciculations Detected: {{ fasciculation_count }}<br>
+            FPS: {{ fps }} 
+        </div>
+    </section>
+
+    <footer style="text-align:center; color: #aaa; margin-bottom: 1em;">
         Designed and Developed by Dheeraj Pandey
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
-    <script src="{{ url_for('static', filename='js/config.js') }}"></script>
-
     <script>
-        const allKeypoints = {{ keypoints | tojson }};
-        const frameStart = 500;
-        const frameEnd = Math.min(3000, frameStart + allKeypoints.length);
+        function scrollToSection(id) {
+            $('html, body').animate({ scrollTop: $('#' + id).offset().top - 40 }, 800);
+        }
 
-        const frames = [];
-        const blobCounts = [];
+        $(document).ready(function () {   
+            const allKeypoints = JSON.parse('{{ keypoints | tojson | safe }}');
+            const frameStart = 500;
+            const frameEnd = Math.min(3000, frameStart + allKeypoints.length);
 
-        for (let i = 0; i < allKeypoints.length; i++) {
+            const frames = [];
+            const blobCounts = [];
+
+            for (let i = 0; i < allKeypoints.length; i++) {
             frames.push(frameStart + i);
             blobCounts.push(allKeypoints[i].length);
         }
 
-        const trace = {
-            x: frames,
-            y: blobCounts,
-            mode: 'lines',
-            type: 'scatter',
-            name: 'Blobs per Frame',
-            line: { color: 'orange' },
-            marker: { size: 6 }
-        };
+            const trace = {
+                x: frames,
+                y: blobCounts,
+                mode: 'lines',
+                type: 'scatter',
+                name: 'Blobs per Frame',
+                line: { color: 'orange' },
+                marker: { size: 6 }
+            };
 
-        const layout = {
-            title: 'Blob Detection per Frame',
-            xaxis: { title: 'Frame Number' },
-            yaxis: { title: 'Blobs Detected' },
-            margin: { t: 40 }
-        };
+            const layout = {
+                title: 'Blob Detection per Frame',
+                xaxis: { title: 'Frame Number' },
+                yaxis: { title: 'Blobs Detected' },
+                paper_bgcolor: '#38445F',
+                plot_bgcolor: '#38445F',
+                font: { color: '#fff' },
+                margin: { t: 40 }
+            };
 
-        Plotly.newPlot('graph', [trace], layout);
+            Plotly.newPlot('plot', [trace], layout);
+        });
     </script>
+    <script src="{{ url_for('static', filename='js/config.js') }}"></script>
 
 </body>
 

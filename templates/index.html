@@ -3,17 +3,54 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeuroSense</title>
 
     <!-- Load jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+    <style>
+        .dropdown-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .dropdown {
+            width: 48%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            background-color: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown:focus {
+            border-color: #4CAF50;
+            background-color: #f1f1f1;
+            outline: none;
+        }
+
+        .file-upload-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 
 <body>
-
     <div id="particles-js"></div> <!-- Particle Animation -->
     <div class="logo-container">
         <img src="{{ url_for('static', filename='images/NEuroSense.png') }}" alt="Logo" class="logo">
@@ -49,16 +86,40 @@
 
             <script>
 
-                // Function to preview the uploaded video
                 function previewSingleVideo() {
                     var file = document.getElementById("singleVideoUpload").files[0];
+
                     if (file) {
+                        console.log("File selected:", file);
+
+                        var validTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+                        if (!validTypes.includes(file.type)) {
+                            console.error("Invalid file type. Please select a valid video file.");
+                            alert("Invalid file type. Please select a valid video file (MP4, WebM, OGG).");
+                            return;
+                        }
+
                         var videoPlayer = document.getElementById("singleVideoPlayer");
+
                         var objectURL = URL.createObjectURL(file);
+                        console.log("Generated Blob URL:", objectURL);
+
                         videoPlayer.src = objectURL;
-                        videoPlayer.style.display = "block";  // Show the video player
+
+                        videoPlayer.style.display = "block";
+
                         videoPlayer.load();
 
+                        videoPlayer.oncanplay = function () {
+                            console.log("Video is ready to play.");
+                        };
+
+                        videoPlayer.onerror = function () {
+                            console.error("Error loading the video. Event:", event);
+                            console.error("Error details:", event.target.error);
+                        };
+                    } else {
+                        console.log("No video file selected.");
                     }
                 }
 
@@ -88,13 +149,11 @@
                     const progressContainer = document.getElementById("progressBarContainer");
                     const progressValue = progressContainer.querySelector(".progress-value");
 
-                    // Show the entire progress + message
                     progressContainer.classList.remove("hidden");
                     progressValue.style.animation = "none";
-                    void progressValue.offsetWidth; // force reflow
+                    void progressValue.offsetWidth;
                     progressValue.style.animation = "load 7s linear infinite";
 
-                    // Start upload
                     const formData = new FormData();
                     formData.append("video", file);
                     formData.append("muscle_group", muscleGroup);
@@ -112,7 +171,7 @@
                             }
                         })
                         .catch(error => {
-                            progressBar.classList.add('hidden'); // hide on error
+                            progressBar.classList.add('hidden');
                             console.error("Error:", error);
                             alert("Error uploading or processing video: " + error.message);
                         });
@@ -170,12 +229,10 @@
         Designed and Developed by Dheeraj Pandey
     </footer>
 
-
     <script>
         $(document).ready(function () {
             console.log("jQuery Loaded!");
         });
-
 
         function uploadExcel() {
             var file = document.getElementById("bulkExcelUpload").files[0];
@@ -184,15 +241,14 @@
             }
         }
 
-
         function selectFolder() {
-            fetch('/select-folder', { method: 'POST' })  // Send request to backend
+            fetch('/select-folder', { method: 'POST' })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         let downloadLink = document.getElementById('downloadExcelLink');
                         downloadLink.href = data.file_url;
-                        downloadLink.style.display = 'block';  // Show download button
+                        downloadLink.style.display = 'block';
                         document.getElementById("fillReminder").style.display = "block";
                     } else {
                         alert("Failed to generate Excel.");
@@ -209,13 +265,12 @@
             const formData = new FormData();
             formData.append("file", file);
 
-            // Show progress bar and reset animation
             const progressContainer = document.getElementById("progressBarContainer_bulk");
             const progressValue = progressContainer.querySelector(".progress-value");
 
             progressContainer.classList.remove("hidden");
             progressValue.style.animation = "none";
-            void progressValue.offsetWidth; // force reflow
+            void progressValue.offsetWidth;
             progressValue.style.animation = "load 3s linear infinite";
 
             const xhr = new XMLHttpRequest();
@@ -224,7 +279,7 @@
                 if (xhr.status === 200) {
                     alert("Upload complete!");
                     setTimeout(function () {
-                        window.location.href = "/results";  // Redirect to the results page
+                        window.location.href = "/results";
                     }, 300);
                 } else {
                     alert("Upload failed.");

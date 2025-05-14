@@ -180,7 +180,7 @@ button {
   top: 0;
   left: 0;
   z-index: -1;
-  background-image: url('/static/images/background.jpg');
+  background: linear-gradient(120deg, #2E3A59, #4A576E);
   background-size: cover;
 }
 
@@ -200,6 +200,7 @@ button {
   height: auto;
   cursor: pointer;
   transition: transform 0.3s ease-in-out;
+  border-style: ridge;
 }
 
 /* Hover effect to zoom in */
@@ -281,7 +282,7 @@ footer {
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  background: #00c0b5;
+  background: transparent;
   color: white;
   text-align: center;
   padding: 10px;
@@ -346,178 +347,6 @@ footer {
 .hidden {
   display: none;
 }
-
-.results-page .grid-layout {
-  display: grid;
-  grid-template-columns: 2.2fr 2.2fr 2.2fr auto;
-  grid-template-areas:
-    "filename muscle probe side"
-    "video video video side";
-  gap: 20px;
-  width: 95%;
-  max-width: 1400px;
-  margin: auto;
-  margin-top: 160px;
-}
-
-.top-section:nth-child(1) {
-  grid-area: filename;
-}
-
-.top-section:nth-child(2) {
-  grid-area: muscle;
-}
-
-.top-section:nth-child(3) {
-  grid-area: probe;
-}
-
-.results-page .section,
-.top-section {
-  background-color: white;
-  color: #1261A0;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  min-height: 175px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-
-}
-
-.results-page .video-player-area {
-  grid-area: video;
-  padding: 20px;
-  border-radius: 12px;
-  text-align: center;
-}
-
-.results-page .video-player-area video {
-  width: 100%;
-  max-width: 680px;
-  border-radius: 10px;
-}
-
-.results-page .video-player-area a {
-  display: inline-block;
-  margin-top: 15px;
-  padding: 10px 20px;
-  background-color: #0c7dc0;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: bold;
-}
-
-.results-page .right-section {
-  grid-area: side;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.bulk-result {
-  padding: 60px 20px 40px;
-  background: transparent;
-  color: #000;
-  text-align: center;
-  position: relative;
-  margin-top: 50px;
-}
-
-.clickable-name {
-  cursor: pointer;
-  color: #0c7dc0;
-  text-decoration: underline;
-}
-
-.video-row:hover {
-  background-color: #f5f5f5;
-}
-
-/* Header */
-.video-header small {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #0c7dc0;
-  margin-top: 100px;
-  display: block;
-}
-
-/* Centered Video Player */
-.video-player {
-  margin: 40px auto 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-.flex-video video {
-  width: 640px;
-  height: 360px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  background-color: #000;
-}
-
-.video-metadata-table-container {
-  width: 100%;
-  max-width: 1000px;
-  margin: 40px auto;
-  overflow-x: auto;
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-}
-
-.video-metadata-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: center;
-  font-family: Arial, sans-serif;
-}
-
-.video-metadata-table thead {
-  background-color: #f0f0f0;
-  font-weight: bold;
-}
-
-.video-metadata-table th,
-.video-metadata-table td {
-  padding: 15px;
-  border: 1px solid #e0e0e0;
-  font-size: 0.95rem;
-  color: #333;
-}
-
-.download-btn {
-  display: inline-block;
-  padding: 8px 16px;
-  background-color: #0c7dc0;
-  color: #fff;
-  text-decoration: none;
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-@media (max-width: 600px) {
-
-  .video-metadata-table th,
-  .video-metadata-table td {
-    padding: 10px 8px;
-    font-size: 0.85rem;
-  }
-
-  .download-btn {
-    padding: 6px 12px;
-    font-size: 0.85rem;
-  }
-}
-
 
 /* Active video indicator */
 .active-video {

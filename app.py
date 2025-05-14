@@ -31,7 +31,6 @@ os.makedirs(app.config["PROCESSED_FOLDER"], exist_ok=True)
 upload_dir = "uploads"
 os.makedirs(upload_dir, exist_ok=True)  # Create if not exists
 
-
 class ForegroundDetector:
     def __init__(
         self,
@@ -77,7 +76,6 @@ class ForegroundDetector:
         self.bg_subtractor.setBackgroundRatio(self.min_background_ratio)
         self.bg_subtractor.setNMixtures(self.num_gaussians)
         self.time = 0
-
 
 def optimize_mp4_for_browser(input_path):
     """
@@ -359,7 +357,6 @@ def upload():
 def serve_video(filename):
     return send_from_directory("processed", filename)
 
-
 @app.route("/result")
 def result():
     processed_video = session.get("processed", None)
@@ -389,7 +386,6 @@ def result():
         'RA': 'Rectus Abdominis'
     }
     muscle_group_label = muscle_group_map.get(muscle_group, muscle_group) 
-
 
     return render_template(
         "result.html",
@@ -502,13 +498,87 @@ def upload_excel():
         df = pd.read_excel(file_path)
 
     # Define GMM parameters
-    params = {
-        "num_gaussians": 5,
-        "min_background_ratio": 0.7,
-        "initial_variance": 15.0,
-        "learning_rate": 0.01,
-        "num_training_frames": 500,
-        "adapt_learning_rate": True,
+    param_map = {
+        ("BB", "longitudinal"): {
+            "num_gaussians": 5,
+            "min_background_ratio": 0.85,
+            "initial_variance": 30 * 30,
+            "learning_rate": 0.05,
+            "num_training_frames": 500,
+            "adapt_learning_rate": True,
+        },
+        ("BB", "transverse"): {
+            "num_gaussians": 3,
+            "min_background_ratio": 0.80,
+            "initial_variance": 30 * 30,
+            "learning_rate": 0.05,
+            "num_training_frames": 500,
+            "adapt_learning_rate": True,
+        },
+        ("MG", "transverse"): {
+            "num_gaussians": 3,
+            "min_background_ratio": 0.85,
+            "initial_variance": 30 * 30,
+            "learning_rate": 0.05,
+            "num_training_frames": 500,
+            "adapt_learning_rate": True,
+        },
+        ("MG", "longitudinal"): {
+            "num_gaussians": 5,
+            "min_background_ratio": 0.90,
+            "initial_variance": 30 * 30,
+            "learning_rate": 0.05,
+            "num_training_frames": 500,
+            "adapt_learning_rate": True,
+        },
+        ("TRAP", "transverse"): {
+            "num_gaussians": 4,
+            "min_background_ratio": 0.90,
+            "initial_variance": 30 * 30,
+            "learning_rate": 0.05,
+            "num_training_frames": 500,
+            "adapt_learning_rate": True,
+        },
+        ("TRAP", "longitudinal"): {
+            "num_gaussians": 3,
+            "min_background_ratio": 0.90,
+            "initial_variance": 30 * 30,
+            "learning_rate": 0.5,
+            "num_training_frames": 500,
+            "adapt_learning_rate": True,
+        },
+        ("RA", "transverse"): {
+            "num_gaussians": 5,
+            "min_background_ratio": 0.90,
+            "initial_variance": 30 * 30,
+            "learning_rate": 0.05,
+            "num_training_frames": 500,
+            "adapt_learning_rate": True,
+        },
+        ("RA", "longitudinal"): {
+            "num_gaussians": 5,
+            "min_background_ratio": 0.90,
+            "initial_variance": 30 * 30,
+            "learning_rate": 0.05,
+            "num_training_frames": 500,
+            "adapt_learning_rate": True,
+        },
+        ("TP", "transverse"): {
+            "num_gaussians": 3,
+            "min_background_ratio": 0.90,
+            "initial_variance": 30 * 30,
+            "learning_rate": 0.005,
+            "num_training_frames": 100,
+            "adapt_learning_rate": True,
+        },
+        ("TP", "longitudinal"): {
+            "num_gaussians": 3,
+            "min_background_ratio": 0.90,
+            "initial_variance": 30 * 30,
+            "learning_rate": 0.005,
+            "num_training_frames": 300,
+            "adapt_learning_rate": True,
+        },
     }
 
     # Create a unique subfolder for this upload in static
@@ -524,11 +594,26 @@ def upload_excel():
         muscle_group = row["muscle_group"]
         probe_orientation = row["probe_orientation"]
 
+        print(muscle_group,probe_orientation)
+
         output_name = (
             f"{os.path.splitext(os.path.basename(video_path))[0]}_processed.mp4"
         )
         output_path = os.path.join(subfolder_path, output_name)
 
+        params = param_map.get(
+        (muscle_group, probe_orientation),
+        {
+            "num_gaussians": 5,
+            "min_background_ratio": 0.7,
+            "initial_variance": 30 * 30,
+            "learning_rate": 0.01,
+            "num_training_frames": 500,
+            "adapt_learning_rate": True,
+        },
+    )
+
+        print("Retrieved parameters:", params)
         fasciculation_count, fps, _ = process_video(video_path, output_path, params)
 
         processed_videos.append({
@@ -538,19 +623,32 @@ def upload_excel():
         "fps": fps,
     })
 
-        print("Processed videos:", processed_videos)
-
     # Render the results page
     session["processed_videos"] = processed_videos
     return redirect(url_for("bulk_results"))
 
-
 @app.route("/results")
 def bulk_results():
     videos = session.get("processed_videos", [])
-    print("Videos in session:", videos)  # Debug line
-    return render_template("bulk_results.html", videos=videos)
+    print(videos)
 
+    df = pd.DataFrame([
+    {
+        "filename": item.get("name", "NA"),
+        "fasciculations": item.get("fasciculation_count", "NA"),
+        "fps": item.get("fps", "NA")
+    }
+    for item in videos
+])
+    # Define the path for the Excel file
+    unique_id = uuid.uuid4().hex
+    filename = f"processed_results_{unique_id}.xlsx"
+    excel_path = os.path.join("static", "excel", filename)
+    df.to_excel(excel_path, index=False)
+    # Store the path in session for download later
+    session["excel_filename"] = filename
+
+    return render_template("bulk_results.html", videos=videos , excel_filename=filename)
 
 if __name__ == "__main__":
     app.run(debug=True)

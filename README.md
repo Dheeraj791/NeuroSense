@@ -1,5 +1,5 @@
 
-![Logo](static/images/NEuroSense.png)
+<img src="static/images/NEuroSense.png" alt="Logo" width="180">
 
 
 

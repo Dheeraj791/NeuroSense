@@ -1,5 +1,5 @@
 
-<p align="center">
+<p>
   <img src="static/images/NEuroSense.png" alt="Logo" width="180" style="border: 3px ridge #ccc; padding: 5px;">
 </p>
 
@@ -27,8 +27,9 @@ Documentation for Neurosense is available on Read the Docs.
 </p>
 
 
-
 ## Architecture
+
+
 
 ## Installation
 
@@ -124,7 +125,7 @@ Please adhere to this project's `code of conduct`.
 
 Here are some related projects
 
-[README](https://www.sciencedirect.com/science/article/pii/S0301562919300274)
+[Bibbings et al. (2019)](https://www.sciencedirect.com/science/article/pii/S0301562919300274)
 
 
 ## Repo structure

@@ -164,6 +164,9 @@
                         body: formData
                     })
                         .then(response => {
+                            progressValue.style.animation = "none";
+                            progressValue.style.width = "100%"; 
+
                             if (response.redirected) {
                                 window.location.href = response.url;
                             } else {
@@ -278,6 +281,8 @@
             xhr.onload = function () {
                 if (xhr.status === 200) {
                     alert("Upload complete!");
+                    progressValue.style.animation = "none";
+                    progressValue.style.width = "100%"; 
                     setTimeout(function () {
                         window.location.href = "/results";
                     }, 300);

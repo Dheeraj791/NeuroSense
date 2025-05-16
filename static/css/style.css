@@ -412,8 +412,46 @@ footer {
   }
 }
 
-@media (max-width: 600px) {
-  .custom-progress-bar {
-    width: 90%;
+@media (max-width: 768px) {
+  .progress-value {
+    height: 6px;
+    border-radius: 50px;
   }
 }
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .progress-value {
+    height: 8px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .progress-value {
+    height: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .progress {
+    width: 90%;
+    height: 30px;
+    padding: 0 4px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .progress {
+    width: 80%;
+    height: 35px;
+    padding: 0 5px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .progress {
+    width: 450px;
+    height: 40px;
+    padding: 0 5px;
+  }
+}
+

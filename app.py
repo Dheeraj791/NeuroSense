@@ -590,42 +590,60 @@ def upload_excel():
 
     # Process each row in Excel
     for idx, row in df.iterrows():
-        video_path = row["Full_Path"]
-        muscle_group = row["muscle_group"]
-        probe_orientation = row["probe_orientation"]
+        try:
+            video_path = row["Full_Path"]
+            muscle_group = row["muscle_group"]
+            probe_orientation = row["probe_orientation"]
 
-        print(muscle_group,probe_orientation)
+            # Check for missing values (None or NaN)
+            if pd.isna(video_path) or pd.isna(muscle_group) or pd.isna(probe_orientation):
+                raise ValueError(
+                    f"Missing data in row {idx}: "
+                    f"Full_Path={video_path}, muscle_group={muscle_group}, probe_orientation={probe_orientation}"
+                )
 
-        output_name = (
-            f"{os.path.splitext(os.path.basename(video_path))[0]}_processed.mp4"
-        )
-        output_path = os.path.join(subfolder_path, output_name)
+            print(muscle_group, probe_orientation)
 
-        params = param_map.get(
-        (muscle_group, probe_orientation),
-        {
-            "num_gaussians": 5,
-            "min_background_ratio": 0.7,
-            "initial_variance": 30 * 30,
-            "learning_rate": 0.01,
-            "num_training_frames": 500,
-            "adapt_learning_rate": True,
-        },
-    )
+            output_name = f"{os.path.splitext(os.path.basename(video_path))[0]}_processed.mp4"
+            output_path = os.path.join(subfolder_path, output_name)
 
-        print("Retrieved parameters:", params)
-        fasciculation_count, fps, _ = process_video(video_path, output_path, params)
+            params = param_map.get(
+                (muscle_group, probe_orientation),
+                {
+                    "num_gaussians": 5,
+                    "min_background_ratio": 0.7,
+                    "initial_variance": 30 * 30,
+                    "learning_rate": 0.01,
+                    "num_training_frames": 500,
+                    "adapt_learning_rate": True,
+                },
+            )
 
-        processed_videos.append({
-        "path": f"processed_videos/{base_name}/{output_name}",
-        "name": output_name,
-        "fasciculation_count": fasciculation_count,
-        "fps": fps,
-    })
+            print("Retrieved parameters:", params)
+            fasciculation_count, fps, _ = process_video(video_path, output_path, params)
 
-    # Render the results page
+            processed_videos.append({
+                "path": f"processed_videos/{base_name}/{output_name}",
+                "name": output_name,
+                "fasciculation_count": fasciculation_count,
+                "fps": fps,
+            })
+
+        except KeyError as e:
+            return jsonify({
+                "success": False,
+                "message": f"Missing column in Excel file: {e.args[0]}. Please use the correct template."
+            })
+        except ValueError as e:
+            return jsonify({
+                "success": False,
+                "message": str(e) + " Please correct your Excel file."
+            })
+
+    # After loop completes
     session["processed_videos"] = processed_videos
-    return redirect(url_for("bulk_results"))
+    return jsonify({"success": True}), 200 
+
 
 @app.route("/results")
 def bulk_results():

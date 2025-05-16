@@ -237,13 +237,6 @@
             console.log("jQuery Loaded!");
         });
 
-        function uploadExcel() {
-            var file = document.getElementById("bulkExcelUpload").files[0];
-            if (file) {
-                alert("Excel file uploaded: " + file.name);
-            }
-        }
-
         function selectFolder() {
             fetch('/select-folder', { method: 'POST' })
                 .then(response => response.json())
@@ -270,6 +263,8 @@
 
             const progressContainer = document.getElementById("progressBarContainer_bulk");
             const progressValue = progressContainer.querySelector(".progress-value");
+            const waitMessage = progressContainer.querySelector(".wait-message");
+
 
             progressContainer.classList.remove("hidden");
             progressValue.style.animation = "none";
@@ -280,14 +275,29 @@
 
             xhr.onload = function () {
                 if (xhr.status === 200) {
-                    alert("Upload complete!");
-                    progressValue.style.animation = "none";
-                    progressValue.style.width = "100%"; 
-                    setTimeout(function () {
-                        window.location.href = "/results";
-                    }, 300);
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            alert("Upload complete!");
+                            progressValue.style.animation = "none";
+                            progressValue.style.width = "100%";
+                            setTimeout(() => {
+                                window.location.href = "/results";
+                            }, 300);
+                        } else {
+                            // Show error message returned from backend
+                            alert("Upload failed: " + response.message);
+                            progressValue.style.animation = "none";
+                            progressValue.style.width = "0%";
+                            waitMessage.style.display = "none"; 
+                            location.reload();
+
+                        }
+                    } catch (err) {
+                        alert("Upload failed: Invalid server response.");
+                    }
                 } else {
-                    alert("Upload failed.");
+                    alert("Upload failed with status: " + xhr.status);
                 }
             };
 

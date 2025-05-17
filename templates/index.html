@@ -92,7 +92,7 @@
                     if (file) {
                         console.log("File selected:", file);
 
-                        var validTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+                        var validTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/x-msvideo'];
                         if (!validTypes.includes(file.type)) {
                             console.error("Invalid file type. Please select a valid video file.");
                             alert("Invalid file type. Please select a valid video file (MP4, WebM, OGG).");
@@ -292,6 +292,7 @@
                             waitMessage.style.display = "none"; 
                             location.reload();
 
+
                         }
                     } catch (err) {
                         alert("Upload failed: Invalid server response.");
@@ -308,6 +309,11 @@
             xhr.open("POST", "/upload-excel", true);
             xhr.send(formData);
         }
+             window.onpageshow = function(event) {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+                };
     </script>
     <script src="{{ url_for('static', filename='js/config.js') }}"></script>
 

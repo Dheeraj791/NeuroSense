@@ -14,7 +14,7 @@ from flask_cors import CORS
 import subprocess
 import ffmpeg
 import json
-
+import copy
 
 app = Flask(__name__)
 app.secret_key = (
@@ -29,7 +29,9 @@ os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 os.makedirs(app.config["PROCESSED_FOLDER"], exist_ok=True)
 
 upload_dir = "uploads"
-os.makedirs(upload_dir, exist_ok=True)  # Create if not exists
+os.makedirs(upload_dir, exist_ok=True)  
+TEMP_DATA = {}
+
 
 class ForegroundDetector:
     def __init__(
@@ -207,9 +209,6 @@ def process_video(input_video_path, output_video_path, params):
         frame_count += 1
         window_frame_counter += 1
 
-    # After loop ends
-    print(f"Total fasciculations detected: {fasciculation_count}")
-
     cap.release()
     out.release()
     cv2.destroyAllWindows()
@@ -337,7 +336,6 @@ def upload():
         },
     )
 
-    print("Retrieved parameters:", params)
 
     fasciculation_count, all_keypoints, fps = process_video(
         input_path, output_path, params
@@ -407,18 +405,11 @@ def index():
 @app.route("/download_template", methods=["GET"])
 def download_template():
     try:
-        # Define the columns for the template
         columns = ["trial_name", "muscle_group", "probe_orientation", "file_path"]
-
-        # Create an empty DataFrame
         df = pd.DataFrame(columns=columns)
-
-        # Create a temporary file to save the Excel template
         with NamedTemporaryFile(delete=False, suffix=".xlsx") as temp_file:
             template_path = temp_file.name
             df.to_excel(template_path, index=False)
-
-        # Return the file to the user for download
         return send_file(
             template_path,
             as_attachment=True,
@@ -426,7 +417,6 @@ def download_template():
         )
 
     except Exception as e:
-        print(f"Error generating Excel file: {e}")
         return "Error generating Excel file", 500
 
     finally:
@@ -482,11 +472,9 @@ def upload_excel():
     if not file:
         return jsonify({"success": False, "message": "No file uploaded"})
 
-    # Create upload directory
     upload_dir = "uploads"
     os.makedirs(upload_dir, exist_ok=True)
 
-    # Save uploaded Excel file
     filename = secure_filename(file.filename)
     file_path = os.path.join(upload_dir, filename)
     file.save(file_path)
@@ -497,7 +485,6 @@ def upload_excel():
     else:
         df = pd.read_excel(file_path)
 
-    # Define GMM parameters
     param_map = {
         ("BB", "longitudinal"): {
             "num_gaussians": 5,
@@ -594,7 +581,6 @@ def upload_excel():
             video_path = row["Full_Path"]
             muscle_group = row["muscle_group"]
             probe_orientation = row["probe_orientation"]
-
             # Check for missing values (None or NaN)
             if pd.isna(video_path) or pd.isna(muscle_group) or pd.isna(probe_orientation):
                 raise ValueError(
@@ -602,11 +588,8 @@ def upload_excel():
                     f"Full_Path={video_path}, muscle_group={muscle_group}, probe_orientation={probe_orientation}"
                 )
 
-            print(muscle_group, probe_orientation)
-
             output_name = f"{os.path.splitext(os.path.basename(video_path))[0]}_processed.mp4"
             output_path = os.path.join(subfolder_path, output_name)
-
             params = param_map.get(
                 (muscle_group, probe_orientation),
                 {
@@ -618,10 +601,7 @@ def upload_excel():
                     "adapt_learning_rate": True,
                 },
             )
-
-            print("Retrieved parameters:", params)
-            fasciculation_count, fps, _ = process_video(video_path, output_path, params)
-
+            fasciculation_count,_,fps = process_video(video_path, output_path, params)
             processed_videos.append({
                 "path": f"processed_videos/{base_name}/{output_name}",
                 "name": output_name,
@@ -640,24 +620,21 @@ def upload_excel():
                 "message": str(e) + " Please correct your Excel file."
             })
 
-    # After loop completes
-    session["processed_videos"] = processed_videos
-    return jsonify({"success": True}), 200 
-
+    TEMP_DATA["latest"] = processed_videos
+    return jsonify({"success": True, "redirect_url": url_for("bulk_results")}), 200
 
 @app.route("/results")
 def bulk_results():
-    videos = session.get("processed_videos", [])
-    print(videos)
-
+    videos = TEMP_DATA.get("latest", [])
     df = pd.DataFrame([
-    {
-        "filename": item.get("name", "NA"),
-        "fasciculations": item.get("fasciculation_count", "NA"),
-        "fps": item.get("fps", "NA")
-    }
-    for item in videos
-])
+        {
+            "filename": item.get("name", "NA"),
+            "fasciculations": item.get("fasciculation_count", "NA"),
+            "fps": item.get("fps", "NA")
+        }
+        for item in videos
+    ])
+    
     # Define the path for the Excel file
     unique_id = uuid.uuid4().hex
     filename = f"processed_results_{unique_id}.xlsx"

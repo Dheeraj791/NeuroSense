@@ -18,7 +18,7 @@ import copy
 
 app = Flask(__name__)
 app.secret_key = (
-    "your_super_secret_key_here"  # Must be set for using session #dummy string used
+    "test_123"  # Must be set for using session #dummy string used
 )
 CORS(app)  # Enable Cross-Origin Resource Sharing
 
@@ -104,14 +104,12 @@ def optimize_mp4_for_browser(input_path):
         os.replace(temp_path, input_path)  # Overwrite original with optimized version
         return input_path
     except subprocess.CalledProcessError as e:
-        print(f"FFmpeg optimization failed: {e}")
         return input_path
 
 
 def process_video(input_video_path, output_video_path, params):
     cap = cv2.VideoCapture(input_video_path)
     if not cap.isOpened():
-        print(f"Error: Could not open video {input_video_path}")
         return
 
     # Create a ForegroundDetector instance using the provided parameters
@@ -228,7 +226,6 @@ def upload():
     probe_orientation = request.form.get("probe_orientation")
 
     filename = secure_filename(video.filename)
-    session['filename'] = filename  
     input_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
     unique_id = str(uuid.uuid4())
@@ -340,16 +337,16 @@ def upload():
     fasciculation_count, all_keypoints, fps = process_video(
         input_path, output_path, params
     )
-    session["fasciculation_count"] = fasciculation_count
-    session["processed"] = output_filename
-    session["all_keypoints"] = json.dumps(all_keypoints)
-    session["muscle_group"] = muscle_group
-    session["probe_orientation"] = probe_orientation
-    session["fps"] = fps
 
     # Redirect to the result page
-    return redirect(url_for("result"))
-
+    return redirect(url_for("result",
+                        processed=output_filename,
+                        count=fasciculation_count,
+                        keypoints=json.dumps(all_keypoints),
+                        original=filename,
+                        muscle=muscle_group,
+                        probe=probe_orientation,
+                        fps=fps))
 
 @app.route("/<path:filename>")
 def serve_video(filename):
@@ -357,13 +354,13 @@ def serve_video(filename):
 
 @app.route("/result")
 def result():
-    processed_video = session.get("processed", None)
-    fasciculation_count = session.get("fasciculation_count", 0)
-    all_keypoints_json = session.get("all_keypoints", "[]")
-    filename = session.get('filename')
-    muscle_group = session.get('muscle_group')
-    probe_orientation = session.get('probe_orientation')
-    fps = session.get('fps')
+    processed_video = request.args.get("processed")
+    fasciculation_count = request.args.get("count", 0)
+    all_keypoints_json = request.args.get("keypoints", "[]")
+    filename_1 = request.args.get("original")
+    muscle_group = request.args.get("muscle")
+    probe_orientation = request.args.get("probe")
+    fps = request.args.get("fps")
 
     # Deserialize all_keypoints from JSON
     all_keypoints = json.loads(all_keypoints_json)
@@ -390,7 +387,7 @@ def result():
         video_url=video_url,
         fasciculation_count=fasciculation_count,
         keypoints=all_keypoints,
-        filename=filename,
+        filename=filename_1,
         muscle_group=muscle_group_label,
         probe_orientation=probe_orientation,
         fps=fps

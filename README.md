@@ -9,15 +9,24 @@
 
 # NeuroSense
 
-NeuroSense - A Gaussian mixture model based tool for foreground detection of involuntary twitch movements called as fasiculation.
+Fasciculations are small, involuntary muscle twitches that can be early signs of serious conditions like Motor Neuron Disease (MND). Early detection is important for timely diagnosis and treatment. NeuroSense is a tool designed to detect these twitches using video analysis.
+
+NeuroSense – A tool based on Gaussian Mixture Models for detecting involuntary muscle twitch movements, known as fasciculations, through foreground detection.
 
 ## Motivation
 
+We initially developed the system in MATLAB [Bibbings et al. (2019)] using Gaussian Mixture Models (GMM) for background subtraction. While effective, MATLAB has limitations in expanding and testing advanced methods. Python, with its rich set of machine learning and computer vision libraries, offers a better platform for future development.
+
+We have now successfully migrated our code to Python using OpenCV’s BackgroundSubtractorMOG2, which is also GMM-based. The results are promising, showing clear detection of subtle twitch movements.
+
+With Python, NeuroSense can grow into a smarter, more accurate tool, helping clinicians identify fasciculations earlier. 
+
+Our goal is to support earlier diagnosis of MND and related conditions through accessible and reliable technology.
 
 
 ## Documentation
 
-Documentation for Neurosense is available on Read the Docs.
+Documentation for Neurosense is available on [Read the Docs](https://github.com/Dheeraj791/NeuroSense/tree/main/Documentation).
 
 
 ## Product Highlights
@@ -29,6 +38,9 @@ Documentation for Neurosense is available on Read the Docs.
 
 ## Architecture
 
+<p align="center">
+  <img src="static/images/architecture.png" alt="Product Preview" width="800" height="450" style="border: 4px ridge #ccc;">
+</p>
 
 
 ## Installation
@@ -101,6 +113,21 @@ Follow the steps below to set up and run the Flask application locally:
 
 
 
+## Browser Recommendations & Video Playback Notice
+
+For the best experience using Neurosense, we recommend accessing the platform via one of the following supported browsers:
+
+- **Safari**
+- **Firefox**
+- **Chrome**
+
+> ⚠️ **Note:** If the **live video preview is not working** (particularly in Chrome), this may be due to a known **demuxer issue** in the browser.
+
+### What You Can Do:
+- Try opening the platform in **Safari** or **Firefox**, which are less affected by this issue.
+- Alternatively, you can **download the processed video** and view it locally on your device.
+
+This is a browser-specific issue and will need to be addressed in a future update by the Chrome team.
 
     
 ## Features
@@ -135,8 +162,6 @@ Here are some related projects
 ├─ .DS_Store
 ├─ .gitignore
 ├─ CODE_OF_CONDUCT.md
-├─ Code_files
-│  └─ requirements.txt
 ├─ Documentation
 │  └─ New_file
 ├─ LICENSE
@@ -145,13 +170,15 @@ Here are some related projects
 ├─ abstracts
 │  └─ example
 ├─ app.py
+├─ requirements.txt
 ├─ static
 │  ├─ .DS_Store
 │  ├─ css
 │  │  └─ style.css
 │  ├─ images
 │  │  ├─ NEuroSense.png
-│  │  └─ background.jpg
+│  │  ├─ background.jpg
+│  │  └─ image_product.png
 │  ├─ js
 │  │  ├─ config.js
 │  │  └─ script.js

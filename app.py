@@ -15,6 +15,8 @@ import subprocess
 import ffmpeg
 import json
 import copy
+from flask import Response
+
 
 app = Flask(__name__)
 app.secret_key = (
@@ -213,8 +215,11 @@ def process_video(input_video_path, output_video_path, params):
 
     output_video_path = optimize_mp4_for_browser(output_video_path)
 
-    return fasciculation_count, all_keypoints, fps
-
+    return jsonify({
+        'fasciculation_count': fasciculation_count,
+        'all_keypoints': all_keypoints,
+        'fps': fps
+    }), 200
 
 @app.route("/upload", methods=["POST"])
 def upload():
@@ -333,10 +338,18 @@ def upload():
         },
     )
 
+    result = process_video(input_path, output_path, params)
+    response = result[0]  #Flask Response object
 
-    fasciculation_count, all_keypoints, fps = process_video(
-        input_path, output_path, params
-    )
+    if isinstance(response, Response):
+        json_data = response.get_json()
+
+        fasciculation_count = json_data.get('fasciculation_count')
+        all_keypoints = json_data.get('all_keypoints')
+        fps = json_data.get('fps')
+
+    else:
+        print(">> Not a Flask Response object:", response)
 
     # Redirect to the result page
     return redirect(url_for("result",

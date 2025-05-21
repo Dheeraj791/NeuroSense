@@ -611,7 +611,20 @@ def upload_excel():
                     "adapt_learning_rate": True,
                 },
             )
-            fasciculation_count,_,fps = process_video(video_path, output_path, params)
+
+            result_bulk = process_video(video_path, output_path, params)
+            response_bulk = result_bulk[0]  #Flask Response object
+
+            if isinstance(response_bulk, Response):
+                    json_data = response_bulk.get_json()
+
+                    fasciculation_count = json_data.get('fasciculation_count')
+                    all_keypoints = json_data.get('all_keypoints')
+                    fps = json_data.get('fps')
+
+            else:
+                    print(">> Not a Flask Response object:", response_bulk)
+
             processed_videos.append({
                 "path": f"processed_videos/{base_name}/{output_name}",
                 "name": output_name,

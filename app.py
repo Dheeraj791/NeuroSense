@@ -91,16 +91,16 @@ def optimize_mp4_for_browser(input_path):
     temp_path = input_path.replace(".mp4", "_temp.mp4")
 
     cmd = [
-        "ffmpeg",
-        "-i",
-        input_path,
-        "-movflags",
-        "faststart",
-        "-c",
-        "copy",
-        temp_path,
-    ]
-
+    "ffmpeg",
+    "-i", input_path,
+    "-movflags", "faststart",
+    "-c:v", "libx264",
+    "-profile:v", "main",
+    "-level", "3.1",
+    "-c:a", "aac",
+    "-b:a", "128k",
+    temp_path,
+]
     try:
         subprocess.run(cmd, check=True)
         os.replace(temp_path, input_path)  # Overwrite original with optimized version

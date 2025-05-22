@@ -148,47 +148,93 @@
 
                     const progressContainer = document.getElementById("progressBarContainer");
                     const progressValue = progressContainer.querySelector(".progress-value");
+                    const etaDisplay = document.getElementById("etaDisplay"); // Add this element in your HTML
 
                     progressContainer.classList.remove("hidden");
-                    progressValue.style.animation = "none";
-                    void progressValue.offsetWidth;
-                    progressValue.style.animation = "load 8s linear infinite";
+                    progressValue.style.width = "0%";
+                    etaDisplay.innerText = "";
 
                     const formData = new FormData();
                     formData.append("video", file);
                     formData.append("muscle_group", muscleGroup);
                     formData.append("probe_orientation", probeOrientation);
 
-                    fetch("/upload", {
-                        method: "POST",
-                        body: formData
-                    })
-                        .then(response => {
-                            progressValue.style.animation = "none";
-                            progressValue.style.width = "100%"; 
+                    const xhr = new XMLHttpRequest();
+                    const startTime = Date.now();
 
-                            if (response.redirected) {
-                                window.location.href = response.url;
+                    xhr.upload.addEventListener("progress", function (e) {
+                        if (e.lengthComputable) {
+                            const percent = (e.loaded / e.total) * 100;
+                            progressValue.style.width = `${percent}%`;
+
+                            const elapsed = (Date.now() - startTime) / 1000;
+                            const speed = e.loaded / elapsed; // bytes/sec
+                            const remaining = e.total - e.loaded;
+                            const eta = remaining / speed;
+
+                            etaDisplay.innerHTML = `
+                                <strong>Upload Stats:</strong><br>
+                                ⏱️ Elapsed time: ${formatETA(elapsed)}<br>
+                                🚀 Upload speed: ${formatSpeed(speed)}<br>
+                                📦 Remaining data: ${formatBytes(remaining)}<br>
+                                ⏳ Estimated time left: ${formatETA(eta)}
+                            `;
+                        }
+                    });
+
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState === XMLHttpRequest.DONE) {
+                            progressValue.style.width = "100%";
+                            etaDisplay.innerText = "";
+
+                            if (xhr.status === 200) {
+                                if (xhr.responseURL) {
+                                    window.location.href = xhr.responseURL;
+                                } else {
+                                    alert("Upload complete.");
+                                }
                             } else {
-                                return response.text().then(text => { throw new Error(text); });
+                                progressContainer.classList.add("hidden");
+                                alert("Error uploading or processing video: " + xhr.responseText);
                             }
-                        })
-                        .catch(error => {
-                            progressBar.classList.add('hidden');
-                            console.error("Error:", error);
-                            alert("Error uploading or processing video: " + error.message);
-                        });
+                        }
+                    };
+
+                    xhr.open("POST", "/upload", true);
+                    xhr.send(formData);
                 }
+
+                function formatETA(seconds) {
+                    if (seconds < 1) return "less than a second";
+                    const mins = Math.floor(seconds / 60);
+                    const secs = Math.round(seconds % 60);
+                    return mins > 0 ? `${mins} min ${secs} sec` : `${secs} sec`;
+                }
+
+                function formatSpeed(bytesPerSec) {
+                    if (bytesPerSec > 1024 * 1024) {
+                        return `${(bytesPerSec / (1024 * 1024)).toFixed(2)} MB/s`;
+                    } else if (bytesPerSec > 1024) {
+                        return `${(bytesPerSec / 1024).toFixed(2)} KB/s`;
+                    } else {
+                        return `${bytesPerSec.toFixed(2)} B/s`;
+                    }
+                }
+
+                function formatBytes(bytes) {
+                    if (bytes > 1024 * 1024) {
+                        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+                    } else if (bytes > 1024) {
+                        return `${(bytes / 1024).toFixed(2)} KB`;
+                    } else {
+                        return `${bytes.toFixed(2)} B`;
+                    }
+                }
+
+
 
             </script>
 
-            <!-- Video display window -->
-            <div id="singleVideoPreview" style="margin-top: 15px;">
-                <video id="singleVideoPlayer" controls preload="metadata" width="640" height="360"
-                    style="display: none;">
-                    Your browser does not support HTML5 video.
-                </video>
-            </div>
 
             <div id="progressBarContainer" class="hidden">
                 <div class="progress">
@@ -196,6 +242,12 @@
                 </div>
                 <div class="wait-message">Please wait...</div>
             </div>
+
+            <div id="progressBarContainer" class="hidden">
+                <div class="progress-value"></div>
+            </div>
+            <p id="etaDisplay" style="margin-top: 5px;"></p>
+
         </div>
 
         <!-- Bulk Video Upload Section -->
@@ -217,12 +269,14 @@
             <input type="file" id="bulkExcelUpload" accept=".xlsx, .csv" style="margin-top: 10px;">
             <button class="button" onclick="uploadExcel()">Upload Excel File</button>
 
-            <div id="progressBarContainer_bulk" class="hidden">
-                <div class="progress">
+            <div id="progressBarContainer_bulk" class="hidden" style="margin-top: 10px;">
+                <div class="progress-bar">
                     <div class="progress-value"></div>
                 </div>
-                <div class="wait-message">Please wait...</div>
+                <div class="wait-message">Processing, please wait...</div>
+                <div id="etaDisplay_bulk" class="eta-info" style="margin-top: 0.5rem; font-size: 0.9rem;"></div>
             </div>
+
         </div>
 
     </div>
@@ -264,56 +318,110 @@
             const progressContainer = document.getElementById("progressBarContainer_bulk");
             const progressValue = progressContainer.querySelector(".progress-value");
             const waitMessage = progressContainer.querySelector(".wait-message");
-
+            const etaDisplay = document.getElementById("etaDisplay_bulk");
 
             progressContainer.classList.remove("hidden");
-            progressValue.style.animation = "none";
-            void progressValue.offsetWidth;
-            progressValue.style.animation = "load 8s linear infinite";
+            progressValue.style.width = "0%";
+            etaDisplay.innerText = "";
 
             const xhr = new XMLHttpRequest();
+            const startTime = Date.now();
+
+            xhr.upload.addEventListener("progress", function (e) {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    progressValue.style.width = `${percent}%`;
+
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    const speed = e.loaded / elapsed; // bytes/sec
+                    const remaining = e.total - e.loaded;
+                    const eta = remaining / speed;
+
+                    etaDisplay.innerHTML = `
+                            <strong>Upload Stats:</strong><br>
+                            ⏱️ Elapsed time: ${formatETA(elapsed)}<br>
+                            🚀 Upload speed: ${formatSpeed(speed)}<br>
+                            📦 Remaining data: ${formatBytes(remaining)}<br>
+                            ⏳ Estimated time left: ${formatETA(eta)}
+                        `;
+                }
+            });
 
             xhr.onload = function () {
                 if (xhr.status === 200) {
                     try {
                         const response = JSON.parse(xhr.responseText);
+                        progressValue.style.width = "100%";
+                        etaDisplay.innerText = "";
+
                         if (response.success) {
                             alert("Upload complete!");
-                            progressValue.style.animation = "none";
-                            progressValue.style.width = "100%";
                             setTimeout(() => {
                                 window.location.href = "/results";
                             }, 300);
                         } else {
-                            // Show error message returned from backend
                             alert("Upload failed: " + response.message);
-                            progressValue.style.animation = "none";
-                            progressValue.style.width = "0%";
-                            waitMessage.style.display = "none"; 
-                            location.reload();
-
-
+                            resetProgressBar();
                         }
                     } catch (err) {
                         alert("Upload failed: Invalid server response.");
+                        resetProgressBar();
                     }
                 } else {
                     alert("Upload failed with status: " + xhr.status);
+                    resetProgressBar();
                 }
             };
 
             xhr.onerror = function () {
                 alert("An error occurred during upload.");
+                resetProgressBar();
             };
 
             xhr.open("POST", "/upload-excel", true);
             xhr.send(formData);
+
+            function resetProgressBar() {
+                progressValue.style.width = "0%";
+                etaDisplay.innerText = "";
+                waitMessage.style.display = "none";
+                location.reload();
+            }
         }
-             window.onpageshow = function(event) {
-                if (event.persisted) {
-                    window.location.reload();
-                }
-                };
+
+        function formatETA(seconds) {
+            if (seconds < 1) return "less than a second";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.round(seconds % 60);
+            return mins > 0 ? `${mins} min ${secs} sec` : `${secs} sec`;
+        }
+
+        function formatSpeed(bytesPerSec) {
+            if (bytesPerSec > 1024 * 1024) {
+                return `${(bytesPerSec / (1024 * 1024)).toFixed(2)} MB/s`;
+            } else if (bytesPerSec > 1024) {
+                return `${(bytesPerSec / 1024).toFixed(2)} KB/s`;
+            } else {
+                return `${bytesPerSec.toFixed(2)} B/s`;
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes > 1024 * 1024) {
+                return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+            } else if (bytes > 1024) {
+                return `${(bytes / 1024).toFixed(2)} KB`;
+            } else {
+                return `${bytes.toFixed(2)} B`;
+            }
+        }
+
+        window.onpageshow = function (event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        };
+
     </script>
     <script src="{{ url_for('static', filename='js/config.js') }}"></script>
 

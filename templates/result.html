@@ -98,7 +98,12 @@
 
         video {
             width: 100%;
-            border-radius: 10px;
+            max-width: 960px; 
+            aspect-ratio: 16 / 9;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            background-color: #000;
         }
 
         .summary-box {
@@ -209,6 +214,7 @@
 
         $(document).ready(function () {   
             const allKeypoints = JSON.parse('{{ keypoints | tojson | safe }}');
+            console.log('here',allKeypoints);
             const frameStart = 500;
             const frameEnd = Math.min(3000, frameStart + allKeypoints.length);
 

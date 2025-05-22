@@ -26,9 +26,12 @@ CORS(app)  # Enable Cross-Origin Resource Sharing
 
 app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
 app.config["PROCESSED_FOLDER"] = os.path.join("static", "processed")
+keypoints_dir = os.path.join("static", "keypoints")
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 os.makedirs(app.config["PROCESSED_FOLDER"], exist_ok=True)
+os.makedirs(keypoints_dir, exist_ok=True)
+
 
 upload_dir = "uploads"
 os.makedirs(upload_dir, exist_ok=True)  
@@ -348,14 +351,23 @@ def upload():
         all_keypoints = json_data.get('all_keypoints')
         fps = json_data.get('fps')
 
+        keypoints_id = str(uuid.uuid4())
+        keypoints_filename = f"{keypoints_id}.json"
+        keypoints_path = os.path.join("static", "keypoints", keypoints_filename)
+
+        with open(keypoints_path, "w") as f:
+            json.dump(all_keypoints, f)
+
     else:
         print(">> Not a Flask Response object:", response)
+    
+    
 
     # Redirect to the result page
     return redirect(url_for("result",
                         processed=output_filename,
                         count=fasciculation_count,
-                        keypoints=json.dumps(all_keypoints),
+                        keypoints=keypoints_filename,
                         original=filename,
                         muscle=muscle_group,
                         probe=probe_orientation,
@@ -375,8 +387,10 @@ def result():
     probe_orientation = request.args.get("probe")
     fps = request.args.get("fps")
 
-    # Deserialize all_keypoints from JSON
-    all_keypoints = json.loads(all_keypoints_json)
+    keypoints_path = os.path.join("static","keypoints", all_keypoints_json)
+
+    with open(keypoints_path, "r") as f:
+        all_keypoints = json.load(f)
 
     if processed_video is None:
         return redirect(url_for("index"))
@@ -384,7 +398,7 @@ def result():
     # Convert the filename into a valid video URL
     video_url = url_for("serve_video", filename=processed_video)
 
-      # Muscle group mapping
+    # Muscle group mapping
     muscle_group_map = {
         'BB': 'Biceps Brachii',
         'MG': 'Medial Gastrocnemius',

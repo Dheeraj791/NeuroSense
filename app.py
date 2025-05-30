@@ -27,11 +27,12 @@ CORS(app)  # Enable Cross-Origin Resource Sharing
 app.config["UPLOAD_FOLDER"] = os.path.join("static", "uploads")
 app.config["PROCESSED_FOLDER"] = os.path.join("static", "processed")
 keypoints_dir = os.path.join("static", "keypoints")
+excel_dir = os.path.join("static", "excel")
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 os.makedirs(app.config["PROCESSED_FOLDER"], exist_ok=True)
 os.makedirs(keypoints_dir, exist_ok=True)
-
+os.makedirs(excel_dir, exist_ok=True)
 
 upload_dir = "uploads"
 os.makedirs(upload_dir, exist_ok=True)  
@@ -644,6 +645,8 @@ def upload_excel():
                 "name": output_name,
                 "fasciculation_count": fasciculation_count,
                 "fps": fps,
+                "all_keypoints": all_keypoints
+
             })
 
         except KeyError as e:

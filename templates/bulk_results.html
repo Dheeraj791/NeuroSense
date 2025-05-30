@@ -8,6 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="{{ url_for('static', filename='js/config.js') }}"></script>
 
   <style>
     body {
@@ -124,6 +126,26 @@
       text-decoration: underline;
     }
 
+    .graph-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            transition: transform 0.3s ease, z-index 0.3s ease;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+    .graph-container:hover {
+            transform: scale(1.5);
+            z-index: 10;
+        }
+
+    #plot {
+            width: 100%;
+            height: 100%;
+        }
+
+
     footer {
       text-align: center;
       color: #aaa;
@@ -161,6 +183,12 @@
         ⬇️ Download All Results
       </a>
     </section>
+
+    <div id="graph-container" style="margin-top: 2em;">
+      <h3 style="color: #fff;">📊 Fasciculation Events Over Time</h3>
+      <div id="plot" style="height: 300px;"></div>
+    </div>
+    
 
     <section class="table-section">
       <h2 style="color: #fff;">📋 Video Summary Table</h2>
@@ -206,8 +234,56 @@
         videoPlayer.play();
       });
     });
-  </script>
-  <script src="{{ url_for('static', filename='js/config.js') }}"></script>
+
+  const allVideoKeypoints = {{ videos | tojson | safe }};
+
+  function renderPlot(keypoints) {
+    const frameStart = 500;
+    const frames = [];
+    const blobCounts = [];
+
+    for (let i = 0; i < keypoints.length; i++) {
+      frames.push(frameStart + i);
+      blobCounts.push(keypoints[i].length);
+    }
+
+    const trace = {
+      x: frames,
+      y: blobCounts,
+      mode: 'lines',
+      type: 'scatter',
+      name: 'Blobs per Frame',
+      line: { color: 'orange' },
+      marker: { size: 6 }
+    };
+
+    const layout = {
+      title: 'Blob Detection per Frame',
+      xaxis: { title: 'Frame Number' },
+      yaxis: { title: 'Blobs Detected' },
+      paper_bgcolor: '#38445F',
+      plot_bgcolor: '#38445F',
+      font: { color: '#fff' },
+      margin: { t: 40 }
+    };
+
+    Plotly.newPlot('plot', [trace], layout);
+  }
+
+  if (allVideoKeypoints.length > 0) {
+    renderPlot(allVideoKeypoints[0].all_keypoints);
+  }
+
+  document.querySelectorAll(".video-radio").forEach((radio, index) => {
+    radio.addEventListener("change", function () {
+      const selectedVideo = allVideoKeypoints.find(v => v.path === radio.value);
+      if (selectedVideo && selectedVideo.all_keypoints) {
+        renderPlot(selectedVideo.all_keypoints);
+      }
+    });
+  });
+</script>
+
 </body>
 
 </html>

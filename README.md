@@ -4,7 +4,7 @@
 </p>
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-
+![Platforms](https://img.shields.io/badge/platform-macOS%20|%20Windows%20|%20Linux-green)
 
 
 # NeuroSense
@@ -111,23 +111,6 @@ Follow the steps below to set up and run the Flask application locally:
     Open your browser and go to:  
     [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
-
-
-## Browser Recommendations & Video Playback Notice
-
-For the best experience using Neurosense, we recommend accessing the platform via one of the following supported browsers:
-
-- **Safari**
-- **Firefox**
-- **Chrome**
-
-> ⚠️ **Note:** If the **live video preview is not working** (particularly in Chrome), this may be due to a known **demuxer issue** in the browser.
-
-### What You Can Do:
-- Try opening the platform in **Safari** or **Firefox**, which are less affected by this issue.
-- Alternatively, you can **download the processed video** and view it locally on your device.
-
-This is a browser-specific issue and will need to be addressed in a future update by the Chrome team.
 
     
 ## Features

@@ -16,6 +16,7 @@ import ffmpeg
 import json
 import copy
 from flask import Response
+from setup_ffmpeg import setup_ffmpeg, get_ffmpeg_path
 
 
 app = Flask(__name__)
@@ -37,6 +38,16 @@ os.makedirs(excel_dir, exist_ok=True)
 upload_dir = "uploads"
 os.makedirs(upload_dir, exist_ok=True)  
 TEMP_DATA = {}
+
+
+# Ensure FFmpeg is available
+bin_dir = os.path.join(os.path.dirname(__file__), 'bin')
+if not os.path.exists(bin_dir) or not any("ffmpeg" in f.lower() for f in os.listdir(bin_dir)):
+    print("🔧 Setting up FFmpeg...")
+    setup_ffmpeg()
+
+# Now get the path to use it anywhere
+ffmpeg_path = get_ffmpeg_path()
 
 
 class ForegroundDetector:
@@ -86,30 +97,28 @@ class ForegroundDetector:
         self.time = 0
 
 def optimize_mp4_for_browser(input_path):
-    """
-    Optimizes an MP4 file for browser playback (Fast Start) by overwriting the original file.
-    """
-    import os
-    import subprocess
-
+    ffmpeg_path = get_ffmpeg_path()  # Use the correct platform-specific path
     temp_path = input_path.replace(".mp4", "_temp.mp4")
 
     cmd = [
-    "ffmpeg",
-    "-i", input_path,
-    "-movflags", "faststart",
-    "-c:v", "libx264",
-    "-profile:v", "main",
-    "-level", "3.1",
-    "-c:a", "aac",
-    "-b:a", "128k",
-    temp_path,
-]
+        ffmpeg_path,
+        "-i", input_path,
+        "-movflags", "faststart",
+        "-c:v", "libx264",
+        "-profile:v", "main",
+        "-level", "3.1",
+        "-c:a", "aac",
+        "-b:a", "128k",
+        temp_path,
+    ]
     try:
         subprocess.run(cmd, check=True)
         os.replace(temp_path, input_path)  # Overwrite original with optimized version
         return input_path
     except subprocess.CalledProcessError as e:
+        print(f"FFmpeg error: {e}")
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
         return input_path
 
 

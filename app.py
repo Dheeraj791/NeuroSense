@@ -1,6 +1,6 @@
 from flask import Flask, request, send_file, redirect, url_for, render_template, session ,jsonify
 import pandas as pd
-import os
+import os, threading
 from tempfile import NamedTemporaryFile
 import multiprocessing
 from tkinter import filedialog, Tk
@@ -12,9 +12,7 @@ from flask import send_from_directory
 from flask import url_for
 from flask_cors import CORS
 import subprocess
-import ffmpeg
 import json
-import copy
 from flask import Response
 from setup_ffmpeg import setup_ffmpeg, get_ffmpeg_path
 
@@ -38,7 +36,7 @@ os.makedirs(excel_dir, exist_ok=True)
 upload_dir = "uploads"
 os.makedirs(upload_dir, exist_ok=True)  
 TEMP_DATA = {}
-
+TASK_STATUS = {}
 
 # Ensure FFmpeg is available
 bin_dir = os.path.join(os.path.dirname(__file__), 'bin')
@@ -48,7 +46,6 @@ if not os.path.exists(bin_dir) or not any("ffmpeg" in f.lower() for f in os.list
 
 # Now get the path to use it anywhere
 ffmpeg_path = get_ffmpeg_path()
-
 
 class ForegroundDetector:
     def __init__(
@@ -97,7 +94,7 @@ class ForegroundDetector:
         self.time = 0
 
 def optimize_mp4_for_browser(input_path):
-    ffmpeg_path = get_ffmpeg_path()  # Use the correct platform-specific path
+    ffmpeg_path = get_ffmpeg_path()  
     temp_path = input_path.replace(".mp4", "_temp.mp4")
 
     cmd = [
@@ -113,7 +110,7 @@ def optimize_mp4_for_browser(input_path):
     ]
     try:
         subprocess.run(cmd, check=True)
-        os.replace(temp_path, input_path)  # Overwrite original with optimized version
+        os.replace(temp_path, input_path) 
         return input_path
     except subprocess.CalledProcessError as e:
         print(f"FFmpeg error: {e}")
@@ -187,7 +184,7 @@ def process_video(input_video_path, output_video_path, params):
             if current_frame_blob_found and prev_frame_blob_found:
                 blob_found_in_window = True  # Blobs detected in consecutive frames
 
-            # Visual overlays (if required)
+            # Visual overlays 
             centroids = []
             for k in keypoints:
                 x, y = int(k.pt[0]), int(k.pt[1])
@@ -197,7 +194,7 @@ def process_video(input_video_path, output_video_path, params):
             all_keypoints.append(centroids)
 
             # Connect blobs with lines (one line for each pair)
-            for i in range(len(centroids) - 1):  # Ensure we don't go out of bounds
+            for i in range(len(centroids) - 1):  
                 pt1 = centroids[i]
                 pt2 = centroids[i + 1]  # Connect blob i to blob i+1
                 cv2.line(frame, pt1, pt2, (255, 255, 0), 1)  # Cyan line
@@ -252,7 +249,7 @@ def upload():
     input_path = os.path.join(app.config["UPLOAD_FOLDER"], saved_name)
     video.save(input_path)
 
-    output_filename = f"processed_{unique_id}.mp4"  # not .avi
+    output_filename = f"processed_{unique_id}.mp4"  
     output_path = os.path.join(app.config["PROCESSED_FOLDER"], output_filename)
 
     # Define parameter map
@@ -435,7 +432,6 @@ def result():
 def index():
     return render_template("index.html")
 
-
 @app.route("/download_template", methods=["GET"])
 def download_template():
     try:
@@ -607,74 +603,117 @@ def upload_excel():
     subfolder_path = os.path.join("static", "processed_videos", base_name)
     os.makedirs(subfolder_path, exist_ok=True)
 
-    processed_videos = []
+    task_id = str(uuid.uuid4())
+    TASK_STATUS[task_id] = {"current_index": 1, "total": len(df), "status": "processing"}
 
-    # Process each row in Excel
-    for idx, row in df.iterrows():
-        try:
-            video_path = row["Full_Path"]
-            muscle_group = row["muscle_group"]
-            probe_orientation = row["probe_orientation"]
-            # Check for missing values (None or NaN)
-            if pd.isna(video_path) or pd.isna(muscle_group) or pd.isna(probe_orientation):
-                raise ValueError(
-                    f"Missing data in row {idx}: "
-                    f"Full_Path={video_path}, muscle_group={muscle_group}, probe_orientation={probe_orientation}"
-                )
+    def threaded_bulk_processing():
+        with app.app_context():
 
-            output_name = f"{os.path.splitext(os.path.basename(video_path))[0]}_processed.mp4"
-            output_path = os.path.join(subfolder_path, output_name)
-            params = param_map.get(
-                (muscle_group, probe_orientation),
-                {
-                    "num_gaussians": 5,
-                    "min_background_ratio": 0.7,
-                    "initial_variance": 30 * 30,
-                    "learning_rate": 0.01,
-                    "num_training_frames": 500,
-                    "adapt_learning_rate": True,
-                },
-            )
+            processed_videos = []
 
-            result_bulk = process_video(video_path, output_path, params)
-            response_bulk = result_bulk[0]  #Flask Response object
+            # Process each row in Excel
+            for idx, row in df.iterrows():
+                try:
+                    video_path = row["Full_Path"]
+                    muscle_group = row["muscle_group"]
+                    probe_orientation = row["probe_orientation"]
+                    # Check for missing values (None or NaN)
+                    if pd.isna(video_path) or pd.isna(muscle_group) or pd.isna(probe_orientation):
+                        raise ValueError(
+                            f"Missing data in row {idx}: "
+                            f"Full_Path={video_path}, muscle_group={muscle_group}, probe_orientation={probe_orientation}"
+                        )
 
-            if isinstance(response_bulk, Response):
-                    json_data = response_bulk.get_json()
+                    output_name = f"{os.path.splitext(os.path.basename(video_path))[0]}_processed.mp4"
+                    output_path = os.path.join(subfolder_path, output_name)
+                    params = param_map.get(
+                        (muscle_group, probe_orientation),
+                        {
+                            "num_gaussians": 5,
+                            "min_background_ratio": 0.7,
+                            "initial_variance": 30 * 30,
+                            "learning_rate": 0.01,
+                            "num_training_frames": 500,
+                            "adapt_learning_rate": True,
+                        },
+                    )
 
-                    fasciculation_count = json_data.get('fasciculation_count')
-                    all_keypoints = json_data.get('all_keypoints')
-                    fps = json_data.get('fps')
+                    result_bulk = process_video(video_path, output_path, params)
+                    response_bulk = result_bulk[0]  #Flask Response object
 
+                    if isinstance(response_bulk, Response):
+                            json_data = response_bulk.get_json()
+
+                            fasciculation_count = json_data.get('fasciculation_count')
+                            all_keypoints = json_data.get('all_keypoints')
+                            fps = json_data.get('fps')
+
+                    else:
+                            print(">> Not a Flask Response object:", response_bulk)
+
+                    processed_videos.append({
+                        "path": f"processed_videos/{base_name}/{output_name}",
+                        "name": output_name,
+                        "fasciculation_count": fasciculation_count,
+                        "fps": fps,
+                        "all_keypoints": all_keypoints
+
+                    })
+
+                    TASK_STATUS[task_id]["current_index"] = idx + 1
+                    print("here", TASK_STATUS[task_id]["current_index"], "of", TASK_STATUS[task_id]["total"])
+
+                except KeyError as e:
+                    TASK_STATUS[task_id]["status"] = "error"
+                    TASK_STATUS[task_id]["message"] = f"Missing column in Excel file: {e.args[0]}. Please use the correct template."
+                    break
+                except Exception as e:
+                    TASK_STATUS[task_id]["status"] = "error"
+                    TASK_STATUS[task_id]["message"] = f"Error processing row {idx}: {str(e)}"
+                    break
+
+                
             else:
-                    print(">> Not a Flask Response object:", response_bulk)
+                TEMP_DATA[task_id] = processed_videos
+                TASK_STATUS[task_id]["status"] = "done"
+                print(f"Bulk processing completed for task {task_id}. Processed {len(processed_videos)} videos.")
+            
+        return  
 
-            processed_videos.append({
-                "path": f"processed_videos/{base_name}/{output_name}",
-                "name": output_name,
-                "fasciculation_count": fasciculation_count,
-                "fps": fps,
-                "all_keypoints": all_keypoints
+    thread = threading.Thread(target=threaded_bulk_processing)
+    thread.start()
 
-            })
+    return jsonify({
+            "success": True,
+            "redirect_url": url_for("bulk_results", task_id=task_id),
+            "task_id": task_id   # so frontend bulk-upload can poll
+        }), 200
 
-        except KeyError as e:
-            return jsonify({
-                "success": False,
-                "message": f"Missing column in Excel file: {e.args[0]}. Please use the correct template."
-            })
-        except ValueError as e:
-            return jsonify({
-                "success": False,
-                "message": str(e) + " Please correct your Excel file."
-            })
+@app.route("/progress_index/<task_id>")
+def get_index_progress(task_id):
+    task = TASK_STATUS.get(task_id)
+    if not task:
+        return jsonify({"success": False, "message": "Invalid task ID"}), 404
 
-    TEMP_DATA["latest"] = processed_videos
-    return jsonify({"success": True, "redirect_url": url_for("bulk_results")}), 200
+    current_index = int(task.get("current_index") or 0)
+    total = int(task.get("total") or 0)
+    status = task.get("status") or "in_progress"
+
+    return jsonify({
+        "success": True,
+        "current_index": current_index,
+        "total": total,
+        "status": status
+    })
 
 @app.route("/results")
 def bulk_results():
-    videos = TEMP_DATA.get("latest", [])
+    task_id = request.args.get("task_id")
+    videos = TEMP_DATA.get(task_id, [])   
+    print(f"Bulk results for task {task_id}: {len(videos)} videos processed.")
+    if not videos:
+        return render_template("bulk_results.html", videos=[], excel_filename=None)
+    
     df = pd.DataFrame([
         {
             "filename": item.get("name", "NA"),

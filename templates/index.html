@@ -277,9 +277,13 @@
                 <div id="etaDisplay_bulk" class="eta-info" style="margin-top: 0.5rem; font-size: 0.9rem;"></div>
             </div>
 
+            
+
         </div>
 
     </div>
+
+    
 
     <!-- Footer -->
     <footer>
@@ -308,123 +312,79 @@
         }
 
         function uploadExcel() {
-            const fileInput = document.getElementById("bulkExcelUpload");
-            const file = fileInput.files[0];
-            if (!file) return;
+        const fileInput = document.getElementById("bulkExcelUpload");
+        const file = fileInput.files[0];
+        if (!file) {
+            alert("Please select a file to upload.");
+            return;
+        }
 
-            const formData = new FormData();
-            formData.append("file", file);
+        const formData = new FormData();
+        formData.append("file", file);
 
-            const progressContainer = document.getElementById("progressBarContainer_bulk");
-            const progressValue = progressContainer.querySelector(".progress-value");
-            const waitMessage = progressContainer.querySelector(".wait-message");
-            const etaDisplay = document.getElementById("etaDisplay_bulk");
+        const progressContainer = document.getElementById("progressBarContainer_bulk");
+        const progressBar = document.querySelector(".progress-value");
+        const etaDisplay = document.getElementById("etaDisplay_bulk");
 
-            progressContainer.classList.remove("hidden");
-            progressValue.style.width = "0%";
-            etaDisplay.innerText = "";
+        progressContainer.classList.remove("hidden");
+        progressBar.style.width = "0%";
+        etaDisplay.textContent = "";
 
-            const xhr = new XMLHttpRequest();
-            const startTime = Date.now();
+        fetch("/upload-excel", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert("Error: " + data.message);
+                return;
+            }
 
-            xhr.upload.addEventListener("progress", function (e) {
-                if (e.lengthComputable) {
-                    const percent = (e.loaded / e.total) * 100;
-                    progressValue.style.width = `${percent}%`;
+            const taskId = data.task_id;
+            const redirectUrl = data.redirect_url;
 
-                    const elapsed = (Date.now() - startTime) / 1000;
-                    const speed = e.loaded / elapsed; // bytes/sec
-                    const remaining = e.total - e.loaded;
-                    const eta = remaining / speed;
+            const interval = setInterval(() => {
+                fetch(`/progress_index/${taskId}`)
+                    .then(res => res.json())
+                    .then(status => {
+                        const { current_index, total, status: processingStatus } = status;
+                        const percent = Math.round((current_index / total) * 100);
+                        progressBar.style.width = `${percent}%`;
 
-                    etaDisplay.innerHTML = `
-                            <strong>Upload Stats:</strong><br>
-                            ⏱️ Elapsed time: ${formatETA(elapsed)}<br>
-                            🚀 Upload speed: ${formatSpeed(speed)}<br>
-                            📦 Remaining data: ${formatBytes(remaining)}<br>
-                            ⏳ Estimated time left: ${formatETA(eta)}
-                        `;
-                }
-            });
+                        etaDisplay.textContent = `Processing file ${current_index} of ${total}`;
 
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        progressValue.style.width = "100%";
-                        etaDisplay.innerText = "";
-
-                        if (response.success) {
-                            alert("Upload complete!");
+                        if (processingStatus === "done") {
+                            clearInterval(interval);
+                            progressBar.style.width = "100%";
+                            etaDisplay.textContent = "Processing complete. Redirecting...";
                             setTimeout(() => {
-                                window.location.href = "/results";
-                            }, 300);
-                        } else {
-                            alert("Upload failed: " + response.message);
-                            resetProgressBar();
+                                window.location.href = "/results?task_id=" + taskId;
+                            }, 20000);
                         }
-                    } catch (err) {
-                        alert("Upload failed: Invalid server response.");
-                        resetProgressBar();
-                    }
-                } else {
-                    alert("Upload failed with status: " + xhr.status);
-                    resetProgressBar();
-                }
-            };
+                    })
+                    .catch(err => {
+                        clearInterval(interval);
+                        console.error("Error polling progress:", err);
+                        etaDisplay.textContent = "An error occurred while tracking progress. Please try again later.";
+                    });
+            }, 30000);
+        })
+        .catch(error => {
+            console.error("Upload failed:", error);
+            alert("An error occurred during file upload.");
+        });
+    }
 
-            xhr.onerror = function () {
-                alert("An error occurred during upload.");
-                resetProgressBar();
-            };
-
-            xhr.open("POST", "/upload-excel", true);
-            xhr.send(formData);
-
-            function resetProgressBar() {
-                progressValue.style.width = "0%";
-                etaDisplay.innerText = "";
-                waitMessage.style.display = "none";
-                location.reload();
-            }
+    window.onpageshow = function (event) {
+        if (event.persisted) {
+            window.location.reload();
         }
+    };
 
-        function formatETA(seconds) {
-            if (seconds < 1) return "less than a second";
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.round(seconds % 60);
-            return mins > 0 ? `${mins} min ${secs} sec` : `${secs} sec`;
-        }
-
-        function formatSpeed(bytesPerSec) {
-            if (bytesPerSec > 1024 * 1024) {
-                return `${(bytesPerSec / (1024 * 1024)).toFixed(2)} MB/s`;
-            } else if (bytesPerSec > 1024) {
-                return `${(bytesPerSec / 1024).toFixed(2)} KB/s`;
-            } else {
-                return `${bytesPerSec.toFixed(2)} B/s`;
-            }
-        }
-
-        function formatBytes(bytes) {
-            if (bytes > 1024 * 1024) {
-                return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-            } else if (bytes > 1024) {
-                return `${(bytes / 1024).toFixed(2)} KB`;
-            } else {
-                return `${bytes.toFixed(2)} B`;
-            }
-        }
-
-        window.onpageshow = function (event) {
-            if (event.persisted) {
-                window.location.reload();
-            }
-        };
 
     </script>
     <script src="{{ url_for('static', filename='js/config.js') }}"></script>
 
 </body>
-
 </html>

@@ -98,7 +98,7 @@
 
         video {
             width: 100%;
-            max-width: 960px; 
+            max-width: 960px;
             aspect-ratio: 16 / 9;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -174,10 +174,12 @@
     <section id="video" class="video-section">
         <div class="section-title">📽️ Diagnostic Video</div>
         <video controls>
-            <source src="{{ url_for('static', filename='processed' + video_url) }}" type="video/mp4" codecs="avc1.4d002a, mp4a.40.2">
+            <source src="{{ url_for('static', filename='processed' + video_url) }}" type="video/mp4"
+                codecs="avc1.4d002a, mp4a.40.2">
             Your browser does not support the video tag.
         </video>
-        <p style="margin-top: 1em; color: #ffffffcc;">FPS: {{ fps }} | Fasciculations Detected: {{ fasciculation_count }}</p>
+        <p style="margin-top: 1em; color: #ffffffcc;">FPS: {{ fps }} | Fasciculations Detected: {{ fasciculation_count
+            }}</p>
         <br>
         <a href="{{ url_for('static', filename='processed' + video_url) }}" download="processed_video.mp4" class="btn">
             Download Processed Video
@@ -199,7 +201,7 @@
             Muscle Group: {{muscle_group}} <br>
             Probe Orientation: {{probe_orientation}} <br>
             Fasciculations Detected: {{ fasciculation_count }}<br>
-            FPS: {{ fps }} 
+            FPS: {{ fps }}
         </div>
     </section>
 
@@ -212,9 +214,9 @@
             $('html, body').animate({ scrollTop: $('#' + id).offset().top - 40 }, 800);
         }
 
-        $(document).ready(function () {   
+        $(document).ready(function () {
             const allKeypoints = JSON.parse('{{ keypoints | tojson | safe }}');
-            console.log('here',allKeypoints);
+            console.log('here', allKeypoints);
             const frameStart = 500;
             const frameEnd = Math.min(3000, frameStart + allKeypoints.length);
 
@@ -222,9 +224,9 @@
             const blobCounts = [];
 
             for (let i = 0; i < allKeypoints.length; i++) {
-            frames.push(frameStart + i);
-            blobCounts.push(allKeypoints[i].length);
-        }
+                frames.push(frameStart + i);
+                blobCounts.push(allKeypoints[i].length);
+            }
 
             const trace = {
                 x: frames,

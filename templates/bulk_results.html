@@ -127,23 +127,23 @@
     }
 
     .graph-container {
-            position: relative;
-            width: 100%;
-            height: 300px;
-            transition: transform 0.3s ease, z-index 0.3s ease;
-            z-index: 1;
-            overflow: hidden;
-        }
+      position: relative;
+      width: 100%;
+      height: 300px;
+      transition: transform 0.3s ease, z-index 0.3s ease;
+      z-index: 1;
+      overflow: hidden;
+    }
 
     .graph-container:hover {
-            transform: scale(1.5);
-            z-index: 10;
-        }
+      transform: scale(1.5);
+      z-index: 10;
+    }
 
     #plot {
-            width: 100%;
-            height: 100%;
-        }
+      width: 100%;
+      height: 100%;
+    }
 
 
     footer {
@@ -174,7 +174,7 @@
 
   <div class="container">
     <section class="video-section">
-      <h2 style="color: #fff;">📽️ Featured Diagnostic Video</h2>
+      <h2 style="color: #fff;">Featured Diagnostic Video</h2>
       <video id="main-video" controls>
         <source src="{{ url_for('static', filename=videos[0]['path']) }}" type="video/mp4">
         Your browser does not support the video tag.
@@ -185,13 +185,13 @@
     </section>
 
     <div id="graph-container" style="margin-top: 2em;">
-      <h3 style="color: #fff;">📊 Fasciculation Events Over Time</h3>
+      <h3 style="color: #fff;">Fasciculation Events Over Time</h3>
       <div id="plot" style="height: 300px;"></div>
     </div>
-    
+
 
     <section class="table-section">
-      <h2 style="color: #fff;">📋 Video Summary Table</h2>
+      <h2 style="color: #fff;">Video Summary Table</h2>
       <table class="video-metadata-table">
         <thead>
           <tr>
@@ -235,54 +235,54 @@
       });
     });
 
-  const allVideoKeypoints = {{ videos | tojson | safe }};
+    const allVideoKeypoints = {{ videos | tojson | safe }};
 
-  function renderPlot(keypoints) {
-    const frameStart = 500;
-    const frames = [];
-    const blobCounts = [];
+    function renderPlot(keypoints) {
+      const frameStart = 500;
+      const frames = [];
+      const blobCounts = [];
 
-    for (let i = 0; i < keypoints.length; i++) {
-      frames.push(frameStart + i);
-      blobCounts.push(keypoints[i].length);
+      for (let i = 0; i < keypoints.length; i++) {
+        frames.push(frameStart + i);
+        blobCounts.push(keypoints[i].length);
+      }
+
+      const trace = {
+        x: frames,
+        y: blobCounts,
+        mode: 'lines',
+        type: 'scatter',
+        name: 'Blobs per Frame',
+        line: { color: 'orange' },
+        marker: { size: 6 }
+      };
+
+      const layout = {
+        title: 'Blob Detection per Frame',
+        xaxis: { title: 'Frame Number' },
+        yaxis: { title: 'Blobs Detected' },
+        paper_bgcolor: '#38445F',
+        plot_bgcolor: '#38445F',
+        font: { color: '#fff' },
+        margin: { t: 40 }
+      };
+
+      Plotly.newPlot('plot', [trace], layout);
     }
 
-    const trace = {
-      x: frames,
-      y: blobCounts,
-      mode: 'lines',
-      type: 'scatter',
-      name: 'Blobs per Frame',
-      line: { color: 'orange' },
-      marker: { size: 6 }
-    };
+    if (allVideoKeypoints.length > 0) {
+      renderPlot(allVideoKeypoints[0].all_keypoints);
+    }
 
-    const layout = {
-      title: 'Blob Detection per Frame',
-      xaxis: { title: 'Frame Number' },
-      yaxis: { title: 'Blobs Detected' },
-      paper_bgcolor: '#38445F',
-      plot_bgcolor: '#38445F',
-      font: { color: '#fff' },
-      margin: { t: 40 }
-    };
-
-    Plotly.newPlot('plot', [trace], layout);
-  }
-
-  if (allVideoKeypoints.length > 0) {
-    renderPlot(allVideoKeypoints[0].all_keypoints);
-  }
-
-  document.querySelectorAll(".video-radio").forEach((radio, index) => {
-    radio.addEventListener("change", function () {
-      const selectedVideo = allVideoKeypoints.find(v => v.path === radio.value);
-      if (selectedVideo && selectedVideo.all_keypoints) {
-        renderPlot(selectedVideo.all_keypoints);
-      }
+    document.querySelectorAll(".video-radio").forEach((radio, index) => {
+      radio.addEventListener("change", function () {
+        const selectedVideo = allVideoKeypoints.find(v => v.path === radio.value);
+        if (selectedVideo && selectedVideo.all_keypoints) {
+          renderPlot(selectedVideo.all_keypoints);
+        }
+      });
     });
-  });
-</script>
+  </script>
 
 </body>
 

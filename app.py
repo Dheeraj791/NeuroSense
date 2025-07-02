@@ -58,7 +58,7 @@ def upload():
     output_filename = f"processed_{unique_id}.mp4"  
     output_path = os.path.join(app.config["PROCESSED_FOLDER"], output_filename)
 
-    # Define parameter map
+    # Define parameter map (Optimsed parameters for each muscle group and probe orientation)
     param_map = {
         ("BB", "longitudinal"): {
             "num_gaussians": 5,
@@ -477,7 +477,6 @@ def upload_excel():
                     TASK_STATUS[task_id]["status"] = "error"
                     TASK_STATUS[task_id]["message"] = f"Error processing row {idx}: {str(e)}"
                     break
-
                 
             else:
                 TEMP_DATA[task_id] = processed_videos
@@ -492,7 +491,7 @@ def upload_excel():
     return jsonify({
             "success": True,
             "redirect_url": url_for("bulk_results", task_id=task_id),
-            "task_id": task_id   # so frontend bulk-upload can poll
+            "task_id": task_id   # so frontend bulk-upload can poll and get task status
         }), 200
 
 @app.route("/progress_index/<task_id>")

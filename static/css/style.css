@@ -120,31 +120,22 @@ button {
   color: #2e2525;
 }
 
-/* Ensure video player takes up half the window width */
 #videoPreview {
   width: 50vw;
-  /* 50% of the viewport width */
   height: auto;
-  /* Maintain aspect ratio */
   margin-top: 15px;
-  /* Space between the video player and buttons */
   background-color: #f3f3f3;
-  /* Light grey background to indicate the space */
   border: 1px solid #ccc;
-  /* Border to outline the video area */
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  /* Position relative for better flexibility */
 }
 
 
 #videoPlayer {
   width: 100%;
-  /* Make the video take up the full width of the container */
   height: auto;
-  /* Maintain aspect ratio based on the width */
 }
 
 * {
@@ -173,7 +164,7 @@ button {
   margin-top: 20px;
 }
 
-/* Particle Background */
+/* Particle Background JS */
 #particles-js {
   position: fixed;
   width: 100%;
@@ -348,7 +339,6 @@ footer {
   display: none;
 }
 
-/* Active video indicator */
 .active-video {
   border: 2px solid #0c7dc0;
   background-color: #e7f3fc;
@@ -377,7 +367,6 @@ footer {
   transform: translateY(-2px);
 }
 
-/* Download Button */
 .download-btn {
   display: inline-block;
   margin-top: 8px;
@@ -394,7 +383,6 @@ footer {
   background-color: #095a8d;
 }
 
-/* Fasciculation Count */
 .fas-count {
   margin-top: 10px;
   font-weight: bold;

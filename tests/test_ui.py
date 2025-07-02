@@ -139,7 +139,7 @@ class NeurosenseUITest(unittest.TestCase):
 
         # Ensure the main featured video is present 
         try:
-            # Wait for main video to be visible (not just present)
+            # Wait for main video to be visible 
             featured_video = WebDriverWait(driver, 500).until(
                 EC.visibility_of_element_located((By.ID, "main-video"))
             )

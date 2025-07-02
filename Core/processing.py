@@ -7,12 +7,9 @@ from Core.setup_ffmpeg import setup_ffmpeg, get_ffmpeg_path
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
-parent_dir = os.path.dirname(current_dir)
-
-bin_dir = os.path.join(parent_dir, 'bin')
-
+project_root = os.path.abspath(os.path.join(current_dir, '..'))  
+bin_dir = os.path.join(project_root, 'Core', 'bin')
 expected_names = ['ffmpeg', 'ffmpeg.exe', 'ffmpeg-macos', 'ffmpeg-linux', 'ffmpeg-win.exe']
-
 print("Checking FFmpeg presence in:", bin_dir)
 
 ffmpeg_present = False
@@ -25,10 +22,10 @@ if os.path.exists(bin_dir):
             break
 
 if not ffmpeg_present:
-    print("Setting up FFmpeg...")
+    print("Here --> Setting up FFmpeg...")
     setup_ffmpeg()
 else:
-    print("FFmpeg already exists. Skipping download.")
+    print("Here2 -->FFmpeg already exists. Skipping download.")
 
 # Get usable ffmpeg path
 ffmpeg_path = get_ffmpeg_path()

@@ -1,0 +1,154 @@
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(120deg, #2E3A59, #4A576E);
+        color: #D5FF72;
+        overflow-x: hidden;
+    }
+
+    #particles-js {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        top: 0;
+        left: 0;
+    }
+
+    .container {
+        position: relative;
+        z-index: 2;
+        max-width: 1100px;
+        margin: auto;
+        padding: 2em;
+    }
+
+    .logo-container {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        transition: transform 0.3s ease-in-out;
+        z-index: 9999;
+        margin-bottom: 20px;
+
+    }
+
+    .logo {
+        max-width: 150px;
+        height: auto;
+        cursor: pointer;
+        transition: transform 0.3s ease-in-out;
+        border-style: ridge;
+    }
+
+    .logo-container:hover .logo {
+        transform: scale(1.2);
+    }
+
+    .video-section,
+    .table-section {
+        background: rgba(56, 68, 95, 0.85);
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        padding: 2em;
+        margin-bottom: 2em;
+        animation: fadeInUp 1s ease;
+        margin-top: 7em;
+        max-width: 1024px;
+
+    }
+
+    video {
+        width: 100%;
+        max-width: 960px;
+        aspect-ratio: 16 / 9;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        background-color: #000;
+    }
+
+    .download-all-btn {
+        display: inline-block;
+        background: #D5FF72;
+        color: #2E3A59;
+        padding: 0.75em 1.5em;
+        border-radius: 8px;
+        font-weight: bold;
+        margin-top: 1em;
+        text-decoration: none;
+    }
+
+    .video-metadata-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 2em;
+    }
+
+    .video-metadata-table th,
+    .video-metadata-table td {
+        padding: 1em;
+        text-align: left;
+        color: #fff;
+        border-bottom: 1px solid #555;
+        table-layout: fixed;
+
+    }
+
+    .video-radio {
+        display: block;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .video-row:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+    }
+
+    .clickable-name {
+        color: #D5FF72;
+        text-decoration: underline;
+    }
+
+    .graph-container {
+        position: relative;
+        width: 100%;
+        height: 300px;
+        transition: transform 0.3s ease, z-index 0.3s ease;
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    .graph-container:hover {
+        transform: scale(1.5);
+        z-index: 10;
+    }
+
+    #plot {
+        width: 100%;
+        height: 100%;
+    }
+
+
+    footer {
+        text-align: center;
+        color: #aaa;
+        margin-bottom: .5em;
+        position: relative;
+        margin-top: 4em;
+        ;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }

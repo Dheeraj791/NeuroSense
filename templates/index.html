@@ -10,78 +10,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
-    <style>
-        .dropdown-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-        }
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 
-        .dropdown {
-            width: 48%;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 16px;
-            background-color: #f9f9f9;
-            transition: all 0.3s ease;
-        }
-
-        .dropdown:focus {
-            border-color: #4CAF50;
-            background-color: #f1f1f1;
-            outline: none;
-        }
-
-        .file-upload-button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .file-upload-button:hover {
-            background-color: #45a049;
-        }
-
-        html {
-            font-size: 72.5%;
-            }
-
-            * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            }
-
-            .timer-wrapper {
-            font-family: "Lato", sans-serif;
-            color: #D5FF72;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px 20px;
-            border-radius: 10px;
-            flex-direction: column;
-            
-            }
-
-            .display-time {
-            display: flex;
-            font-size: 2.2rem;
-            font-weight: bold;
-            border: 2px solid #ffd868;
-            padding: 10px 20px;
-            border-radius: 5px;
-            transition: ease-in-out 0.1s;
-            transition-property: background, box-shadow, color;
-            }
-
-    </style>
 </head>
 
 <body>

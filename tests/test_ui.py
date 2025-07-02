@@ -15,7 +15,7 @@ class NeurosenseUITest(unittest.TestCase):
     @classmethod
     
     def setUpClass(cls):
-        # Check if host is reachable or not
+        # Check if host is reachable
         try:
             response = requests.get("http://127.0.0.1:5000", timeout=10)
             if response.status_code != 200:
@@ -147,7 +147,7 @@ class NeurosenseUITest(unittest.TestCase):
             # Scroll it into view in case it's off-screen
             driver.execute_script("arguments[0].scrollIntoView(true);", featured_video)
 
-            # Optional: Wait until video is fully loaded
+            # Wait until video is fully loaded
             WebDriverWait(driver, 500).until(
                 lambda d: d.execute_script(
                     "let v = document.getElementById('main-video'); return v && v.readyState === 4;"

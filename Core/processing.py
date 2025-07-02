@@ -14,7 +14,6 @@ bin_dir = os.path.join(parent_dir, 'bin')
 expected_names = ['ffmpeg', 'ffmpeg.exe', 'ffmpeg-macos', 'ffmpeg-linux', 'ffmpeg-win.exe']
 
 print("Checking FFmpeg presence in:", bin_dir)
-print("Files found:", os.listdir(bin_dir) if os.path.exists(bin_dir) else "bin_dir not found")
 
 ffmpeg_present = False
 if os.path.exists(bin_dir):

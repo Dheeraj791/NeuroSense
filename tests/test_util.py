@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import tempfile
 
 def get_test_excel_with_correct_paths():
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "sample_data"))
@@ -23,3 +24,17 @@ def get_single_test_video_path():
     video_path = os.path.join(base_dir, "test_video.mp4")
     print(f"Using test video path: {video_path}")
     return video_path
+
+def get_invalid_excel_path():
+    # Create a temporary non-Excel file
+    invalid_path = os.path.join(tempfile.gettempdir(), "not_an_excel.txt")
+    with open(invalid_path, "w") as f:
+        f.write("This is not a valid Excel file.")
+    return invalid_path
+
+def get_invalid_video_path():
+    # Create a temporary non-video file
+    invalid_path = os.path.join(tempfile.gettempdir(), "not_a_video.txt")
+    with open(invalid_path, "w") as f:
+        f.write("This is not a valid video file.")
+    return invalid_path

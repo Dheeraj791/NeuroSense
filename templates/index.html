@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/alert.css') }}">
 
 </head>
 
@@ -39,7 +40,7 @@
 
                 </select>
 
-                <select class="dropdown" id="probeOrientation" required onchange="previewSingleVideo()">
+                <select class="dropdown" id="probeOrientation" required onchange="SingleVideo()">
                     <option value="">Select Probe Orientation</option>
                     <option value="longitudinal">Longitudinal</option>
                     <option value="transverse">Transverse</option>
@@ -50,7 +51,7 @@
 
             <script>
 
-                function previewSingleVideo() {
+                function SingleVideo() {
                     var file = document.getElementById("singleVideoUpload").files[0];
 
                     if (file) {
@@ -59,7 +60,7 @@
                         var validTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/x-msvideo'];
                         if (!validTypes.includes(file.type)) {
                             console.error("Invalid file type. Please select a valid video file.");
-                            alert("Invalid file type. Please select a valid video file (MP4, WebM, OGG).");
+                            customAlert.alert("Invalid file type. Please select a valid video file (MP4, WebM, OGG).");
                             return;
                         }
 
@@ -69,16 +70,9 @@
                         console.log("Generated Blob URL:", objectURL);
 
                         videoPlayer.src = objectURL;
-
                         videoPlayer.style.display = "block";
 
-                        videoPlayer.load();
-
-                        videoPlayer.oncanplay = function () {
-                            console.log("Video is ready to play.");
-                        };
-
-                        videoPlayer.onerror = function () {
+                        videoPlayer.onerror = function (event) {
                             console.error("Error loading the video. Event:", event);
                             console.error("Error details:", event.target.error);
                         };
@@ -87,26 +81,27 @@
                     }
                 }
 
+
                 function validateForm() {
                     const muscle = document.getElementById('muscleGroup').value;
                     const probe = document.getElementById('probeOrientation').value;
 
                     if (!muscle || !probe) {
-                        alert('Please select both Muscle Group and Probe Orientation.');
+                        customAlert.alert('Please select both Muscle Group and Probe Orientation.');
                         return;
                     }
 
-                    previewSingleVideos();
+                    SingleVideos();
                 }
 
-                function previewSingleVideos() {
+                function SingleVideos() {
                     const fileInput = document.getElementById('singleVideoUpload');
                     const muscleGroup = document.getElementById('muscleGroup').value;
                     const probeOrientation = document.getElementById('probeOrientation').value;
                     const file = fileInput.files[0];
 
                     if (!file) {
-                        alert("Please select a video file first.");
+                        customAlert.alert("Please select a video file first.");
                         return;
                     }
 
@@ -155,11 +150,11 @@
                                 if (xhr.responseURL) {
                                     window.location.href = xhr.responseURL;
                                 } else {
-                                    alert("Upload complete.");
+                                    customAlert.alert("Upload complete.");
                                 }
                             } else {
                                 progressContainer.classList.add("hidden");
-                                alert("Error uploading or processing video: " + xhr.responseText);
+                                customAlert.alert("Error uploading or processing video: " + xhr.responseText);
                             }
                         }
                     };
@@ -233,28 +228,28 @@
                 <div class="progress-bar">
                     <div class="progress-value"></div>
                 </div>
-                <div class="wait-message">Processing, please wait...</div>
+                <div class="wait-message">Please wait...</div>
                 <div id="etaDisplay_bulk" class="eta-info" style="margin-top: 0.5rem; font-size: 0.9rem;"></div>
             </div>
         </div>
-     </div>
+    </div>
 
-     <div class="timer-wrapper" style="text-align: center; margin: 130px 0;">
+    <div class="timer-wrapper" style="text-align: center; margin: 130px 0;">
         <div class="display-time"></div>
-      </div>
-      
-      <script>
+    </div>
+
+    <script>
         const displayTime = document.querySelector(".display-time");
-      
+
         function showTime() {
-          const time = new Date();
-          displayTime.innerText = time.toLocaleTimeString("en-US", { hour12: false });
-          setTimeout(showTime, 1000);
+            const time = new Date();
+            displayTime.innerText = time.toLocaleTimeString("en-US", { hour12: false });
+            setTimeout(showTime, 1000);
         }
-      
+
         showTime();
-      </script>
-     
+    </script>
+
     <!-- Footer -->
     <footer>
         Designed and Developed by Dheeraj Pandey
@@ -275,7 +270,7 @@
                         downloadLink.style.display = 'block';
                         document.getElementById("fillReminder").style.display = "block";
                     } else {
-                        alert("Failed to generate Excel.");
+                        customAlert.alert("Failed to generate Excel.");
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -285,7 +280,7 @@
             const fileInput = document.getElementById("bulkExcelUpload");
             const file = fileInput.files[0];
             if (!file) {
-                alert("Please select a file to upload.");
+                customAlert.alert("Please select a file to upload.");
                 return;
             }
 
@@ -307,7 +302,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (!data.success) {
-                        alert("Error: " + data.message);
+                        customAlert.alert("Error: " + data.message,);
                         return;
                     }
 
@@ -342,7 +337,7 @@
                 })
                 .catch(error => {
                     console.error("Upload failed:", error);
-                    alert("An error occurred during file upload.");
+                    customAlert.alert("An error occurred during file upload.");
                 });
         }
 
@@ -355,6 +350,7 @@
 
     </script>
     <script src="{{ url_for('static', filename='js/config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/alert.js') }}"></script>
 
 
 

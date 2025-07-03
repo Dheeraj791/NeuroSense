@@ -315,11 +315,39 @@ def upload_excel():
     file_path = os.path.join(upload_dir, filename)
     file.save(file_path)
 
-    # Read Excel or CSV
+
+    # Load Excel or CSV
     if filename.endswith(".csv"):
-        df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path)
     else:
-        df = pd.read_excel(file_path)
+            df = pd.read_excel(file_path)
+
+        # Required columns
+    required_columns = ["File Name", "Full_Path", "muscle_group", "probe_orientation"]
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    if missing_columns:
+            return jsonify({
+                "success": False,
+                "message": f"Missing required column(s): {', '.join(missing_columns)}"
+            })
+
+        # Check for missing values
+    missing_rows_df = df[df[required_columns].isnull().any(axis=1)]
+    if not missing_rows_df.empty:
+            row_indices = (missing_rows_df.index + 2).tolist()
+            return jsonify({
+                "success": False,
+                "message": f"Missing values in required fields at row(s): {row_indices}"
+            })
+
+        # Check for invalid file paths
+    invalid_paths = df[~df["Full_Path"].apply(lambda path: os.path.exists(str(path)))]
+    if not invalid_paths.empty:
+            invalid_rows = (invalid_paths.index + 2).tolist()
+            return jsonify({
+                "success": False,
+                "message": f"Invalid 'Full_Path' entries at row(s): {invalid_rows}"
+            })     
 
     param_map = {
         ("BB", "longitudinal"): {
@@ -467,7 +495,6 @@ def upload_excel():
                     })
 
                     TASK_STATUS[task_id]["current_index"] = idx + 1
-                    print("here", TASK_STATUS[task_id]["current_index"], "of", TASK_STATUS[task_id]["total"])
 
                 except KeyError as e:
                     TASK_STATUS[task_id]["status"] = "error"
@@ -493,6 +520,7 @@ def upload_excel():
             "redirect_url": url_for("bulk_results", task_id=task_id),
             "task_id": task_id   # so frontend bulk-upload can poll and get task status
         }), 200
+
 
 @app.route("/progress_index/<task_id>")
 def get_index_progress(task_id):

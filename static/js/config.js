@@ -1,5 +1,5 @@
-// Initialize Particle Animation (Green Particles on White Background)
-particlesJS("particles-js", {
+window.addEventListener("DOMContentLoaded", function () {
+    particlesJS("particles-js", {
   particles: {
       number: { value: 80, density: { enable: true, value_area: 800 } },
       color: { value: "#00c0b5" }, /* Green particles */
@@ -20,4 +20,5 @@ particlesJS("particles-js", {
           push: { particles_nb: 4 }
       }
   }
+});
 });

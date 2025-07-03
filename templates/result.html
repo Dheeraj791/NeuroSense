@@ -7,10 +7,9 @@
     <title>NeuroSense Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
-
 </head>
 
 <body>
@@ -70,7 +69,6 @@
 
         $(document).ready(function () {
             const allKeypoints = JSON.parse('{{ keypoints | tojson | safe }}');
-            console.log('here', allKeypoints);
             const frameStart = 500;
             const frameEnd = Math.min(3000, frameStart + allKeypoints.length);
 

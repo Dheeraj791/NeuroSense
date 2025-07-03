@@ -9,6 +9,8 @@ from selenium.common.exceptions import WebDriverException
 from urllib.parse import urlparse
 from tests.test_util import get_test_excel_with_correct_paths
 from tests.test_util import get_single_test_video_path
+from tests.test_util import get_invalid_video_path
+from tests.test_util import get_invalid_excel_path
 
 
 class NeurosenseUITest(unittest.TestCase):
@@ -75,12 +77,12 @@ class NeurosenseUITest(unittest.TestCase):
             upload_btn.click()
 
             # Wait for progress bar
-            WebDriverWait(driver, 500).until(
+            WebDriverWait(driver, 200).until(
                 EC.visibility_of_element_located((By.ID, "progressBarContainer"))
             )
 
             # Wait for summary box
-            WebDriverWait(driver, 500).until(
+            WebDriverWait(driver, 200).until(
                 EC.visibility_of_element_located((By.CLASS_NAME, "summary-box"))
             )
 
@@ -111,8 +113,38 @@ class NeurosenseUITest(unittest.TestCase):
 
         print(" Single video upload & result test passed.")
 
+    def test_3_invalid_single_video_upload(self):
+        driver = self.driver
+        driver.get("http://127.0.0.1:5000")
 
-    def test_3_bulk_video_upload(self):
+
+        # Select dropdown values
+        muscle_dropdown = Select(driver.find_element(By.ID, "muscleGroup"))
+        probe_dropdown = Select(driver.find_element(By.ID, "probeOrientation"))
+        muscle_dropdown.select_by_value("BB")
+        probe_dropdown.select_by_value("longitudinal")
+
+
+        # Upload invalid video
+        video_path = get_invalid_video_path()
+        self.assertTrue(os.path.exists(video_path), f"Invalid test video not found at: {video_path}")
+
+
+        upload_input = driver.find_element(By.ID, "singleVideoUpload")
+        upload_input.send_keys(video_path)
+
+
+        upload_btn = driver.find_element(By.XPATH, "//button[contains(text(),'Upload Single Video')]")
+        upload_btn.click()
+
+        error_modal = WebDriverWait(driver, 30).until(
+        EC.visibility_of_element_located((By.ID, "dialogboxbody"))
+        )
+        alert_text = error_modal.text
+        self.assertIn("Internal Server Error", alert_text)
+        print("Custom alert detected with message:", alert_text)
+
+    def test_4_bulk_video_upload(self):
         driver = self.driver
         driver.get("http://127.0.0.1:5000")
 
@@ -134,7 +166,7 @@ class NeurosenseUITest(unittest.TestCase):
             EC.visibility_of_element_located((By.ID, "progressBarContainer_bulk"))
         )
 
-    def test_4_bulk_results_check(self):
+    def test_5_bulk_results_check(self):
         driver = self.driver
 
         # Ensure the main featured video is present 
@@ -144,7 +176,7 @@ class NeurosenseUITest(unittest.TestCase):
                 EC.visibility_of_element_located((By.ID, "main-video"))
             )
 
-            # Scroll it into view in case it's off-screen
+            # Scroll it into view 
             driver.execute_script("arguments[0].scrollIntoView(true);", featured_video)
 
             # Wait until video is fully loaded
@@ -201,7 +233,69 @@ class NeurosenseUITest(unittest.TestCase):
 
             print("Bulk results page structure and content verified.")
 
-                
+    def test_6_invalid_excel_upload(self):
+            driver = self.driver
+            driver.get("http://127.0.0.1:5000")
+
+
+            excel_input = WebDriverWait(driver, 500).until(
+                EC.presence_of_element_located((By.ID, "bulkExcelUpload"))
+            )
+            excel_path = get_invalid_excel_path()
+            self.assertTrue(os.path.exists(excel_path), f"Invalid Excel file not found: {excel_path}")
+            excel_input.send_keys(excel_path)
+
+
+            upload_btn = driver.find_element(By.XPATH, "//button[contains(text(),'Upload Excel File')]")
+            upload_btn.click()
+
+
+            error_modal = WebDriverWait(driver, 30).until(
+            EC.visibility_of_element_located((By.ID, "dialogboxbody"))
+            )
+
+            alert_text = error_modal.text
+            self.assertIn("An error occurred during file upload.", alert_text)
+            print("Custom alert detected with message:", alert_text)
+
+    def test_7_page_reload_no_errors(self):
+            driver = self.driver
+            driver.refresh()
+            self.assertIn("NeuroSense", driver.title)
+
+    def test_8_navigation_links_work(self):
+            driver = self.driver
+            nav_links = driver.find_elements(By.CSS_SELECTOR, "nav a")
+            for link in nav_links:
+                href = link.get_attribute("href")
+                if href:
+                    driver.get(href)
+                    self.assertIn("http://127.0.0.1:5000", driver.current_url)
+
+    def test_9_multiple_file_selection_ui_block(self):
+            driver = self.driver
+            driver.get("http://127.0.0.1:5000")
+            input_elem = driver.find_element(By.ID, "singleVideoUpload")
+            self.assertFalse(input_elem.get_attribute("multiple"))
+
+    def test_10_empty_single_video_submission(self):
+        driver = self.driver
+        driver.get("http://127.0.0.1:5000")
+
+        # Click the upload button directly
+        upload_btn = driver.find_element(By.XPATH, "//button[contains(text(),'Upload Single Video')]")
+        upload_btn.click()
+
+        # Wait for error dialog or validation message
+        error_modal = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.ID, "dialogboxbody"))
+        )
+
+        alert_text = error_modal.text
+        self.assertTrue("Please" in alert_text or "required" in alert_text or "Error" in alert_text)
+
+        print("Form validation alert detected:", alert_text)
+
     @classmethod
     def tearDownClass(cls):
         cls.driver.quit()

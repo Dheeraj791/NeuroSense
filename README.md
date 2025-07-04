@@ -137,54 +137,52 @@ Here are some related projects
 ## Repo structure
 
 ```
- 
-├─ .DS_Store
-├─ .gitignore
-├─ CODE_OF_CONDUCT.md
-├─ Core
-│  ├─ __init__.py
+.DS_Store
+.gitignore
+CODE_OF_CONDUCT.md
+Core
+Readme.md
+__init__.py
 │  ├─ processing.py
 │  └─ setup_ffmpeg.py
-├─ LICENSE
-├─ README.md
-├─ abstracts
-│  └─ example
+LICENSE
+README.md
 ├─ app.py
-├─ paper.bib
-├─ paper.md
-├─ requirements.txt
-├─ static
+paper.bib
+paper.md
+requirements.txt
+static
 │  ├─ .DS_Store
-│  ├─ css
+css
 │  │  ├─ alert.css
-│  │  ├─ bulk_results.css
-│  │  ├─ home.css
-│  │  ├─ result.css
+bulk_results.css
+home.css
+result.css
 │  │  └─ style.css
 │  ├─ images
 │  │  ├─ NEuroSense.png
-│  │  ├─ architecture.png
-│  │  ├─ background.jpg
+architecture.png
+background.jpg
 │  │  └─ image_product.png
 │  ├─ js
 │  │  ├─ .DS_Store
-│  │  ├─ alert.js
-│  │  ├─ config.js
+alert.js
+config.js
 │  │  └─ script.js
 │  └─ logo
 │     ├─ .DS_Store
 │     └─ logo.png
 ├─ templates
 │  ├─ bulk_results.html
-│  ├─ index.html
+index.html
 │  └─ result.html
 └─ tests
    ├─ .DS_Store
-   ├─ Readme.md
-   ├─ __init__.py
-   ├─ sample_data
+Readme.md
+__init__.py
+sample_data
    │  ├─ README.md
-   │  ├─ test_data_template.xlsx
+test_data_template.xlsx
    │  └─ test_video.mp4
    ├─ test_ui.py
    └─ test_util.py

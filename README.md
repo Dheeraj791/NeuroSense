@@ -34,7 +34,9 @@ Our goal is to support earlier diagnosis of MND and related conditions through a
 ## Architecture
 
 <p align="center">
-  <img src="static/images/architecture.png" alt="Product Preview" width="800" height="450" style="border: 4px ridge #ccc;">
+<img src="static/images/architecture.png" alt="Product Preview"
+     width="800" height="500" style="border: 4px ridge #ccc;">
+
 </p>
 
 
@@ -136,36 +138,57 @@ Here are some related projects
 ## Repo structure
 
 ```
-
+ 
 ├─ .DS_Store
 ├─ .gitignore
 ├─ CODE_OF_CONDUCT.md
-├─ Documentation
-│  └─ New_file
+├─ Core
+│  ├─ __init__.py
+│  ├─ processing.py
+│  └─ setup_ffmpeg.py
 ├─ LICENSE
-├─ Paper
 ├─ README.md
 ├─ abstracts
 │  └─ example
 ├─ app.py
+├─ paper.bib
+├─ paper.md
 ├─ requirements.txt
 ├─ static
 │  ├─ .DS_Store
 │  ├─ css
+│  │  ├─ alert.css
+│  │  ├─ bulk_results.css
+│  │  ├─ home.css
+│  │  ├─ result.css
 │  │  └─ style.css
 │  ├─ images
 │  │  ├─ NEuroSense.png
+│  │  ├─ architecture.png
 │  │  ├─ background.jpg
 │  │  └─ image_product.png
 │  ├─ js
+│  │  ├─ .DS_Store
+│  │  ├─ alert.js
 │  │  ├─ config.js
 │  │  └─ script.js
 │  └─ logo
-│     └─ manmet.jpg
-└─ templates
-   ├─ bulk_results.html
-   ├─ index.html
-   └─ result.html
+│     ├─ .DS_Store
+│     └─ logo.png
+├─ templates
+│  ├─ bulk_results.html
+│  ├─ index.html
+│  └─ result.html
+└─ tests
+   ├─ .DS_Store
+   ├─ Readme.md
+   ├─ __init__.py
+   ├─ sample_data
+   │  ├─ README.md
+   │  ├─ test_data_template.xlsx
+   │  └─ test_video.mp4
+   ├─ test_ui.py
+   └─ test_util.py
 ```
 
 ## Feedback

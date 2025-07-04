@@ -43,7 +43,7 @@ The tests use Selenium WebDriver to automate browser interactions with the Neuro
 
 ---
 
-## ▶️ Running the Tests
+## Running the Tests
 
 ### Prerequisites
 
@@ -67,7 +67,7 @@ The tests use Selenium WebDriver to automate browser interactions with the Neuro
 
 ---
 
-### 🏃 Run All Tests
+### Run All Tests
 
 Once you are in tests directory, follow below command:
 

@@ -35,8 +35,7 @@ Our goal is to support earlier diagnosis of MND and related conditions through a
 
 <p align="center">
 <img src="static/images/architecture.png" alt="Product Preview"
-     width="800" height="500" style="border: 4px ridge #ccc;">
-
+     style="width: 100%; max-width: 1000px; height: auto; border: 4px ridge #ccc;">
 </p>
 
 

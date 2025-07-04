@@ -66,4 +66,6 @@
             border-radius: 5px;
             transition: ease-in-out 0.1s;
             transition-property: background, box-shadow, color;
+            -webkit-box-reflect: below 2px
+            linear-gradient(transparent, rgba(255, 255, 255, 0.05));
         }

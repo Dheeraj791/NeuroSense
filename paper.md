@@ -91,9 +91,7 @@ probe orientation, an important factor in clinical workflows.
 
 ![High-level architecture](joss-paper/figures/hl_architecture.png)
 
-```
-Figure 1: High-level Architecture
-```
+
 We based our approach on the observation that fasciculations cause move-
 ment across consecutive frames. To identify a meaningful duration for detect-
 ing such twitches, we experimented with various frame-window sizes. In videos

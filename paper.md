@@ -89,6 +89,7 @@ from muscle activity associated with fasciculations. It was designed to operate
 on a range of skeletal muscles and to be resistant to variations in ultrasound
 probe orientation, an important factor in clinical workflows.
 
+![High-level architecture](figures/hl_architecture.png)
 
 ```
 Figure 1: High-level Architecture

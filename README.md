@@ -19,14 +19,9 @@ We initially developed the system in MATLAB [Bibbings et al. (2019)] using Gauss
 
 We have now successfully migrated our code to Python using OpenCV’s BackgroundSubtractorMOG2, which is also GMM-based. The results are promising, showing clear detection of subtle twitch movements.
 
-With Python, NeuroSense can grow into a smarter, more accurate tool, helping clinicians identify fasciculations earlier. 
+With Python, NeuroSense can grow into a smarter, more accurate tool, helping clinicians and other researchers identify fasciculations earlier. 
 
 Our goal is to support earlier diagnosis of MND and related conditions through accessible and reliable technology.
-
-
-## Documentation
-
-Documentation for Neurosense is available on [Read the Docs](https://github.com/Dheeraj791/NeuroSense/tree/main/Documentation).
 
 
 ## Product Highlights

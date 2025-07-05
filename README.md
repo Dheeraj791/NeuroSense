@@ -122,9 +122,9 @@ Follow the steps below to set up and run the Flask application locally:
 
 Contributions are always welcome!
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for ways to get started.
+see [contributing.md](contributing.md) for ways to get started.
 
-Please adhere to this project's [Code of Conduct](CODE_OF_CONDUCT.md).
+please adhere to this project's [code of conduct](code_of_conduct.md).
 
 
 ## Related Paper

@@ -4,6 +4,8 @@ import zipfile
 import tarfile
 import shutil
 import requests  
+import py7zr
+
 
 def download_file(url, destination):
     print(f"Downloading: {url}")
@@ -29,10 +31,14 @@ def setup_ffmpeg():
 
     if system == "Windows":
         url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z"
-        zip_path = os.path.join(bin_dir, "ffmpeg.zip")
+        zip_path = os.path.join(bin_dir, "ffmpeg.7z")
         download_file(url, zip_path)
-        extract_zip(zip_path, bin_dir)
+
+        with py7zr.SevenZipFile(zip_path, mode='r') as archive:
+            archive.extractall(path=bin_dir)
+
         os.remove(zip_path)
+
         for root, _, files in os.walk(bin_dir):
             if "ffmpeg.exe" in files:
                 shutil.copy(os.path.join(root, "ffmpeg.exe"), os.path.join(bin_dir, "ffmpeg.exe"))

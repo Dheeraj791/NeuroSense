@@ -4,8 +4,7 @@ import zipfile
 import tarfile
 import shutil
 import requests  
-import py7zr
-
+import subprocess
 
 def download_file(url, destination):
     print(f"Downloading: {url}")
@@ -30,19 +29,32 @@ def setup_ffmpeg():
     os.makedirs(bin_dir, exist_ok=True)
 
     if system == "Windows":
-        url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z"
-        zip_path = os.path.join(bin_dir, "ffmpeg.7z")
-        download_file(url, zip_path)
+        ffmpeg_url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z"
+        ffmpeg_7z_path = os.path.join(bin_dir, "ffmpeg.7z")
+        
+        seven_zip_url = "https://www.7-zip.org/a/7z2500-extra.7z"  
+        seven_zip_exe = os.path.join(bin_dir, "7z.exe")
 
-        with py7zr.SevenZipFile(zip_path, mode='r') as archive:
-            archive.extractall(path=bin_dir)
+        if not os.path.exists(seven_zip_exe):
+            print("Downloading 7z.exe...")
+            download_file(seven_zip_url, seven_zip_exe)
 
-        os.remove(zip_path)
+        if not os.path.exists(ffmpeg_7z_path):
+            print("Downloading FFmpeg full .7z...")
+            download_file(ffmpeg_url, ffmpeg_7z_path)
 
-        for root, _, files in os.walk(bin_dir):
-            if "ffmpeg.exe" in files:
-                shutil.copy(os.path.join(root, "ffmpeg.exe"), os.path.join(bin_dir, "ffmpeg.exe"))
-                break
+            print("Extracting FFmpeg...")
+            subprocess.run([seven_zip_exe, 'x', ffmpeg_7z_path, f'-o{bin_dir}', '-y'], check=True)
+
+            os.remove(ffmpeg_7z_path)
+
+            for root, _, files in os.walk(bin_dir):
+                if "ffmpeg.exe" in files:
+                    src = os.path.join(root, "ffmpeg.exe")
+                    dst = os.path.join(bin_dir, "ffmpeg.exe")
+                    shutil.copy(src, dst)
+                    print(f"ffmpeg.exe copied to {dst}")
+                    break
 
     elif system == "Darwin":
         url = "https://evermeet.cx/ffmpeg/ffmpeg-7.1.1.zip"

@@ -4,7 +4,6 @@ import zipfile
 import tarfile
 import shutil
 import requests  
-import subprocess
 
 def download_file(url, destination):
     print(f"Downloading: {url}")
@@ -25,7 +24,6 @@ def extract_tar_xz(src, dst):
 
 def setup_ffmpeg():
     system = platform.system()
-    arch = platform.architecture()[0]
     bin_dir = os.path.join(os.path.dirname(__file__), 'bin')
     os.makedirs(bin_dir, exist_ok=True)
 

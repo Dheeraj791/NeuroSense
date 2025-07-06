@@ -30,48 +30,23 @@ def setup_ffmpeg():
     os.makedirs(bin_dir, exist_ok=True)
 
     if system == "Windows":
-        ffmpeg_url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z"
-        ffmpeg_7z_path = os.path.join(bin_dir, "ffmpeg.7z")
+        url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip"
+        zip_path = os.path.join(bin_dir, "ffmpeg.zip")
+        download_file(url, zip_path)
+        extract_zip(zip_path, bin_dir)
+        os.remove(zip_path)
 
-        seven_zip_archive = os.path.join(bin_dir, "7z-extra.7z")
-        seven_zip_exe = os.path.join(bin_dir, "7z.exe")
-
-        if arch == "64bit":
-            seven_zip_url = "https://www.7-zip.org/a/7z2301-extra.7z"
-        else:
-            seven_zip_url = "https://www.7-zip.org/a/7z2107-extra.7z"
-
-        if not os.path.exists(seven_zip_exe):
-            print("Downloading 7z portable binary...")
-            download_file(seven_zip_url, seven_zip_archive)
-
-            print("Please extract 7z.exe manually from:")
-            print(f"  {seven_zip_archive}")
-            print(f"To: {bin_dir}")
-            print("Then rerun this script.")
-            exit(1)
-
-        # Download and extract FFmpeg
-        if not os.path.exists(ffmpeg_7z_path):
-            print("Downloading FFmpeg full .7z...")
-            download_file(ffmpeg_url, ffmpeg_7z_path)
-
-        print("Extracting FFmpeg...")
-        try:
-            subprocess.run([seven_zip_exe, 'x', ffmpeg_7z_path, f'-o{bin_dir}', '-y'], check=True)
-        except subprocess.CalledProcessError as e:
-            print("Error: Failed to extract ffmpeg. Ensure 7z.exe is a valid executable for your system.")
-            raise e
-
-        os.remove(ffmpeg_7z_path)
-
+        ffmpeg_exe = None
         for root, _, files in os.walk(bin_dir):
             if "ffmpeg.exe" in files:
-                src = os.path.join(root, "ffmpeg.exe")
-                dst = os.path.join(bin_dir, "ffmpeg.exe")
-                shutil.copy(src, dst)
-                print(f"ffmpeg.exe copied to {dst}")
+                ffmpeg_exe = os.path.join(root, "ffmpeg.exe")
                 break
+
+        if not ffmpeg_exe:
+            raise RuntimeError("ffmpeg.exe not found after extracting the zip.")
+
+        shutil.copy(ffmpeg_exe, os.path.join(bin_dir, "ffmpeg.exe"))
+        print(f"ffmpeg.exe copied to: {os.path.join(bin_dir, 'ffmpeg.exe')}")
 
     elif system == "Darwin":
         url = "https://evermeet.cx/ffmpeg/ffmpeg-7.1.1.zip"

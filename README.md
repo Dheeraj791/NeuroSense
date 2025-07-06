@@ -35,7 +35,7 @@ Our goal is to support earlier diagnosis of MND and related conditions through a
 
 <p align="center">
 <img src="static/images/architecture.png" alt="Product Preview"
-     style="width: 100%; max-width: 1000px; height: auto; border: 4px ridge #ccc;">
+     style="width: 800px; max-width: 1000px; height: 415px; border: 4px ridge #ccc;">
 </p>
 
 
@@ -111,10 +111,22 @@ Follow the steps below to set up and run the Flask application locally:
     
 ## Features
 
-- Single video upload
-- Bulk video upload
-- Live previews
-- Fullscreen mode
+# Single Video Upload
+Upload a single ultrasound video along with its muscle group and probe orientation.
+This feature is designed to support large ultrasound files (GB-scale).
+
+A small 1-2 MB test sample video is included for functionality testing purposes.
+
+# Bulk Video Upload via Excel
+Upload an entire folder of ultrasound videos using select folder functionality, automatically generate an Excel template, fill in details such as muscle group and probe orientation, and submit it for processing.
+This enables batch analysis for high-throughput use cases or larger clinical datasets.
+
+# Live Video Previews & Fasciculation Visualization
+After processing, the application provides live previews of all videos.
+Detected fasciculations are overlaid in real time, and an interactive graph shows their distribution across the video timeline for easy verification and interpretation.
+
+# Fullscreen Viewing Mode
+All processed videos can be expanded to fullscreen, enhancing clarity during analysis and review of subtle fasciculation patterns.
 
 
 

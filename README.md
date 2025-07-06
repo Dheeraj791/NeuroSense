@@ -46,8 +46,8 @@ Follow the steps below to set up and run the Flask application locally:
 1. **Clone the Repository**
 
     ```bash
-    git clone https://github.com/Dheeraj791/NeuroSense.git
-    cd your-flask-app
+      git clone https://github.com/Dheeraj791/NeuroSense.git
+      cd NeuroSense
     ```
 
 2. **(Optional) Create and Activate a Virtual Environment**
@@ -111,21 +111,21 @@ Follow the steps below to set up and run the Flask application locally:
     
 ## Features
 
-# Single Video Upload
+### Single Video Upload
 Upload a single ultrasound video along with its muscle group and probe orientation.
 This feature is designed to support large ultrasound files (GB-scale).
 
 A small 1-2 MB test sample video is included for functionality testing purposes.
 
-# Bulk Video Upload via Excel
+### Bulk Video Upload via Excel
 Upload an entire folder of ultrasound videos using select folder functionality, automatically generate an Excel template, fill in details such as muscle group and probe orientation, and submit it for processing.
 This enables batch analysis for high-throughput use cases or larger clinical datasets.
 
-# Live Video Previews & Fasciculation Visualization
+### Live Video Previews & Fasciculation Visualization
 After processing, the application provides live previews of all videos.
 Detected fasciculations are overlaid in real time, and an interactive graph shows their distribution across the video timeline for easy verification and interpretation.
 
-# Fullscreen Viewing Mode
+### Fullscreen Viewing Mode
 All processed videos can be expanded to fullscreen, enhancing clarity during analysis and review of subtle fasciculation patterns.
 
 
@@ -149,52 +149,60 @@ Here are some related projects
 ## Repo structure
 
 ```
-.DS_Store
-.gitignore
-CODE_OF_CONDUCT.md
-Core
-Readme.md
-__init__.py
+
+├─ .DS_Store
+├─ .github
+│  └─ workflows
+│     └─ paper.yml
+├─ .gitignore
+├─ Core
+│  ├─ Readme.md
+│  ├─ __init__.py
 │  ├─ processing.py
 │  └─ setup_ffmpeg.py
-LICENSE
-README.md
+├─ LICENSE
+├─ README.md
 ├─ app.py
-paper.bib
-paper.md
-requirements.txt
-static
+├─ code_of_conduct.md
+├─ contributing.md
+├─ joss-paper
+│  └─ figures
+│     └─ hl_architecture.png
+├─ paper.bib
+├─ paper.md
+├─ requirements.txt
+├─ static
 │  ├─ .DS_Store
-css
+│  ├─ css
 │  │  ├─ alert.css
-bulk_results.css
-home.css
-result.css
+│  │  ├─ bulk_results.css
+│  │  ├─ home.css
+│  │  ├─ result.css
 │  │  └─ style.css
 │  ├─ images
 │  │  ├─ NEuroSense.png
-architecture.png
-background.jpg
+│  │  ├─ architecture.png
+│  │  ├─ background.jpg
 │  │  └─ image_product.png
 │  ├─ js
 │  │  ├─ .DS_Store
-alert.js
-config.js
+│  │  ├─ alert.js
+│  │  ├─ config.js
 │  │  └─ script.js
 │  └─ logo
 │     ├─ .DS_Store
 │     └─ logo.png
 ├─ templates
 │  ├─ bulk_results.html
-index.html
+│  ├─ index.html
 │  └─ result.html
 └─ tests
    ├─ .DS_Store
-Readme.md
-__init__.py
-sample_data
+   ├─ Readme.md
+   ├─ __init__.py
+   ├─ sample_data
    │  ├─ README.md
-test_data_template.xlsx
+   │  ├─ test_data_template.xlsx
    │  └─ test_video.mp4
    ├─ test_ui.py
    └─ test_util.py

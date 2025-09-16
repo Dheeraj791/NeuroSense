@@ -5,6 +5,7 @@
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 ![Platforms](https://img.shields.io/badge/platform-macOS%20|%20Windows%20|%20Linux-green)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17138130.svg)](https://doi.org/10.5281/zenodo.17138130)
 
 
 # NeuroSense
@@ -144,6 +145,14 @@ please adhere to this project's [code of conduct](code_of_conduct.md).
 Here are some related projects
 
 [Bibbings et al. (2019)](https://www.sciencedirect.com/science/article/pii/S0301562919300274)
+
+## Citation
+
+If you use **NeuroSense** in your research, please cite:
+
+> Pandey, Dheeraj. (2025). *NeuroSense: Automated fasciculation detection in ultrasound imaging* (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.17138130
+
+
 
 
 ## Repo structure

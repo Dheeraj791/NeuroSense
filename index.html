@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="NeuroSense is open-source software for automated detection and quantification of muscle fasciculations in ultrasound video sequences using GMM-based foreground segmentation.">
+  <meta name="keywords" content="NeuroSense, muscle fasciculation, ultrasound, motor neuron disease, MND, GMM, foreground segmentation, OpenCV">
+  <meta name="author" content="Dheeraj Pandey">
+  <meta property="og:title" content="NeuroSense — Automated Muscle Fasciculation Monitoring">
+  <meta property="og:description" content="Open-source GMM-based foreground segmentation for muscle fasciculation monitoring in ultrasound videos.">
+  <meta property="og:type" content="website">
+  <title>NeuroSense — Muscle Fasciculation Monitoring</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090d16;
+      --panel: #111827;
+      --panel-2: #151f30;
+      --text: #e8eef8;
+      --muted: #9aa9bd;
+      --line: rgba(157,178,207,.16);
+      --accent: #75e0c0;
+      --accent-2: #8eb8ff;
+      --max: 1120px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; background:
+        radial-gradient(ellipse at 15% 0%, rgba(73,132,174,.16), transparent 38rem),
+        radial-gradient(ellipse at 90% 18%, rgba(71,174,143,.10), transparent 34rem),
+        var(--bg);
+      color: var(--text); font: 16px/1.7 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: #b5f6e4; }
+    .wrap { width: min(var(--max), calc(100% - 44px)); margin: auto; }
+    header {
+      position: sticky; top: 0; z-index: 10; backdrop-filter: blur(18px);
+      background: rgba(9,13,22,.78); border-bottom: 1px solid var(--line);
+    }
+    .nav { min-height: 68px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+    .brand { display:flex; align-items:center; gap:11px; color:var(--text); font-weight:750; letter-spacing:.02em; }
+    .brand-mark {
+      width:31px; height:31px; border-radius:10px; display:grid; place-items:center;
+      color:#071610; background:linear-gradient(135deg,var(--accent),#a8c9ff); font-size:17px;
+    }
+    nav { display:flex; gap:22px; flex-wrap:wrap; }
+    nav a { color:var(--muted); font-size:13px; font-weight:600; }
+    nav a:hover { color:var(--text); }
+    .hero { padding:88px 0 76px; }
+    .eyebrow { color:var(--accent); text-transform:uppercase; letter-spacing:.17em; font-size:11px; font-weight:800; }
+    h1 { font-size:clamp(42px,7vw,76px); line-height:1.04; letter-spacing:-.055em; max-width:850px; margin:20px 0 20px; }
+    .gradient { background:linear-gradient(100deg,#f2f7ff 5%,#a7d8ef 48%,#75e0c0 95%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .lead { color:#b3c1d4; font-size:clamp(17px,2vw,20px); max-width:760px; margin:0 0 30px; }
+    .actions { display:flex; gap:12px; flex-wrap:wrap; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:9px; padding:11px 17px; border-radius:9px; font-size:14px; font-weight:700; border:1px solid var(--line); transition:.2s; }
+    .btn.primary { background:var(--accent); color:#071711; border-color:var(--accent); }
+    .btn.secondary { color:var(--text); background:rgba(255,255,255,.035); }
+    .btn:hover { transform:translateY(-2px); }
+    .meta { display:flex; gap:25px; flex-wrap:wrap; margin-top:38px; color:var(--muted); font-size:13px; }
+    .meta strong { color:var(--text); font-weight:650; }
+    section { padding:62px 0; border-top:1px solid var(--line); }
+    .section-head { max-width:700px; margin-bottom:30px; }
+    h2 { font-size:clamp(27px,4vw,38px); letter-spacing:-.035em; line-height:1.2; margin:10px 0 12px; }
+    h3 { font-size:18px; margin:0 0 9px; }
+    p { color:#b3c0d1; margin:0 0 14px; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; }
+    .card { padding:22px; border:1px solid var(--line); border-radius:14px; background:linear-gradient(145deg,rgba(21,31,48,.9),rgba(14,21,34,.88)); }
+    .card p { font-size:14px; margin:0; }
+    .number { color:var(--accent); font-size:12px; font-weight:800; letter-spacing:.12em; margin-bottom:14px; }
+    .figure { border:1px solid var(--line); background:#0d1420; border-radius:14px; padding:14px; margin:22px 0 30px; }
+    .figure img { width:100%; height:auto; display:block; border-radius:7px; background:#fff; }
+    .caption { color:var(--muted); font-size:13px; text-align:center; padding:12px 6px 2px; }
+    .split { display:grid; grid-template-columns:1fr 1fr; gap:30px; align-items:start; }
+    .list { padding-left:19px; color:#b3c0d1; }
+    .list li { padding:5px 0; }
+    .codebox { position:relative; background:#080d15; border:1px solid var(--line); border-radius:12px; padding:19px; overflow:auto; color:#c8d7e9; font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .copy { position:absolute; right:10px; top:10px; border:1px solid var(--line); color:var(--muted); background:#131d2b; padding:6px 10px; border-radius:7px; cursor:pointer; font-size:11px; }
+    .citation { border-left:2px solid var(--accent); padding:4px 0 4px 18px; color:#d5dfed; }
+    .references { color:var(--muted); font-size:13px; padding-left:20px; }
+    .references li { margin:0 0 12px; }
+    footer { border-top:1px solid var(--line); padding:28px 0 40px; color:var(--muted); font-size:13px; }
+    .foot { display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; }
+    .tag { display:inline-block; color:#b4c6d9; background:rgba(142,184,255,.09); border:1px solid rgba(142,184,255,.16); padding:4px 9px; border-radius:99px; font-size:11px; margin:4px 5px 0 0; }
+    @media(max-width:760px) {
+      .grid { grid-template-columns:1fr; }
+      .split { grid-template-columns:1fr; }
+      nav { display:none; }
+      .hero { padding:65px 0 55px; }
+      section { padding:48px 0; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top"><span class="brand-mark">N</span> NeuroSense</a>
+    <nav aria-label="Main navigation">
+      <a href="#overview">Overview</a><a href="#method">Method</a><a href="#figures">Figures</a><a href="#availability">Software</a><a href="#citation">Citation</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap hero">
+    <div class="eyebrow">Open-source research software · v1.0.0</div>
+    <h1><span class="gradient">NeuroSense</span><br>Automated Muscle Fasciculation Monitoring</h1>
+    <p class="lead">A Python-based tool for detecting and quantifying muscle fasciculations in ultrasound video sequences using adaptive, Gaussian Mixture Model (GMM)-based foreground segmentation.</p>
+    <div class="actions">
+      <a class="btn primary" href="https://github.com/Dheeraj791/NeuroSense" target="_blank" rel="noopener">↗ View on GitHub</a>
+      <a class="btn secondary" href="https://doi.org/10.5281/zenodo.17138130" target="_blank" rel="noopener">◈ Zenodo record</a>
+      <a class="btn secondary" href="paper.pdf" target="_blank">↓ Read the paper</a>
+    </div>
+    <div class="meta">
+      <span><strong>Authors</strong> &nbsp; Dheeraj Pandey · Adrian K. Davison</span>
+      <span><strong>Affiliation</strong> &nbsp; Manchester Metropolitan University</span>
+      <span><strong>Paper date</strong> &nbsp; September 2025</span>
+    </div>
+  </div>
+
+  <section id="overview">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">01 / Overview</div>
+        <h2>Making muscle activity easier to quantify</h2>
+        <p>Motor neuron disease (MND) involves progressive degeneration of motor neurons, resulting in muscle weakness and wasting. Sensitive markers of neuromuscular change are important for supporting early diagnosis and measuring disease progression.</p>
+        <p>Ultrasound provides a non-invasive, real-time view of muscle. NeuroSense applies adaptive foreground detection to ultrasound image sequences to identify brief, involuntary twitch events known as fasciculations.</p>
+      </div>
+      <div class="grid">
+        <article class="card"><div class="number">01 — PURPOSE</div><h3>Objective detection</h3><p>Supports objective detection and quantification of muscle fasciculations in ultrasound videos.</p></article>
+        <article class="card"><div class="number">02 — APPROACH</div><h3>Adaptive foreground segmentation</h3><p>Models pixel-level motion over time to distinguish background motion from activity associated with fasciculations.</p></article>
+        <article class="card"><div class="number">03 — DESIGN</div><h3>Flexible research platform</h3><p>Developed in Python to support extensibility, customization and future computer-vision methods.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="method">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">02 / Method</div>
+        <h2>From MATLAB GMM to Python and OpenCV</h2>
+        <p>The original system used Gaussian mixture models in MATLAB. NeuroSense migrates this approach to Python using OpenCV's <code>BackgroundSubtractorMOG2</code>, which is also GMM-based.</p>
+      </div>
+      <div class="split">
+        <div>
+          <h3>Core processing idea</h3>
+          <p>Ultrasound videos are processed by modelling pixel-level motion across frames. Adaptive background subtraction identifies moving foreground regions that may correspond to muscle activity.</p>
+          <p>The software was designed to work across a range of skeletal muscles and to be resistant to variations in ultrasound probe orientation—an important consideration in clinical workflows.</p>
+          <span class="tag">Python</span><span class="tag">OpenCV</span><span class="tag">GMM</span><span class="tag">MOG2</span><span class="tag">Ultrasound video</span>
+        </div>
+        <div class="card">
+          <h3>Why the transition?</h3>
+          <ul class="list">
+            <li><strong>Scalability:</strong> access to Python's computer-vision and machine-learning ecosystem.</li>
+            <li><strong>Customization:</strong> greater control over model parameters for domain-specific requirements.</li>
+            <li><strong>Community support:</strong> shared resources, ongoing development and a broad user community.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="figures">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">03 / System architecture</div>
+        <h2>Inside the NeuroSense workflow</h2>
+        <p>The diagrams below are reproduced from the accompanying paper.</p>
+      </div>
+      <figure class="figure">
+        <img src="assets/figure-2-1.png" alt="Low-level architecture diagram from the NeuroSense paper" loading="lazy">
+        <figcaption class="caption">Figure 1. Low-level architecture.</figcaption>
+      </figure>
+      <figure class="figure">
+        <img src="assets/figure-3-1.png" alt="High-level architecture diagram from the NeuroSense paper" loading="lazy">
+        <figcaption class="caption">Figure 2. High-level architecture.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="availability">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">04 / Get the software</div>
+        <h2>Open and accessible</h2>
+        <p>NeuroSense is openly available for researchers and developers interested in ultrasound-based fasciculation monitoring.</p>
+      </div>
+      <div class="grid">
+        <article class="card"><div class="number">SOURCE CODE</div><h3>GitHub repository</h3><p>Explore the implementation, source files and project updates.</p><p style="margin-top:15px"><a href="https://github.com/Dheeraj791/NeuroSense" target="_blank" rel="noopener">github.com/Dheeraj791/NeuroSense ↗</a></p></article>
+        <article class="card"><div class="number">ARCHIVE</div><h3>Zenodo</h3><p>Access the archived software release and persistent record.</p><p style="margin-top:15px"><a href="https://doi.org/10.5281/zenodo.17138130" target="_blank" rel="noopener">10.5281/zenodo.17138130 ↗</a></p></article>
+        <article class="card"><div class="number">DOCUMENTATION</div><h3>Research paper</h3><p>Read the paper describing the motivation, background and software approach.</p><p style="margin-top:15px"><a href="paper.pdf" target="_blank">Open paper PDF ↗</a></p></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="citation">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">05 / Cite this work</div>
+        <h2>Give credit when using NeuroSense</h2>
+        <p>If you use NeuroSense in your research, please cite the archived software release:</p>
+      </div>
+      <div class="codebox" id="citationText">
+        Pandey, D. (2025). NeuroSense: Automated fasciculation detection in ultrasound imaging (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.17138130
+        <button class="copy" onclick="copyCitation()">Copy citation</button>
+      </div>
+      <p id="copyStatus" aria-live="polite" style="font-size:12px;margin-top:8px"></p>
+    </div>
+  </section>
+
+  <section id="references">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">06 / References</div>
+        <h2>Background reading</h2>
+      </div>
+      <ol class="references">
+        <li>K. Bibbings, P. J. Harding, I. D. Loram, N. Combes, and E. F. Hodson-Tole, “Foreground detection analysis of ultrasound image sequences identifies markers of motor neurone disease across diagnostically relevant skeletal muscles,” <em>Ultrasound in Medicine & Biology</em>, vol. 45, no. 5, pp. 1164–1175, 2019.</li>
+        <li>C. Stauffer and W. E. L. Grimson, “Adaptive background mixture models for real-time tracking,” in <em>Proceedings of the IEEE Computer Society Conference on Computer Vision and Pattern Recognition</em>, vol. 2, 1999.</li>
+        <li>M. C. Kiernan et al., “Amyotrophic lateral sclerosis,” <em>The Lancet</em>, vol. 377, no. 9769, pp. 942–955, 2011.</li>
+        <li>D. Baumer, K. Talbot, and M. R. Turner, “Advances in motor neurone disease,” <em>Journal of the Royal College of Physicians of Edinburgh</em>, vol. 44, no. 3, pp. 224–231, 2014.</li>
+        <li>P. Harding, I. Loram, N. Combes, and E. Hodson-Tole, “Ultrasound based detection of fasciculations in healthy and diseased muscles,” <em>IEEE Transactions on Biomedical Engineering</em>, vol. 63, 2015.</li>
+        <li>P. KaewTraKulPong and R. Bowden, “An improved adaptive background mixture model for real-time tracking with shadow detection,” in <em>Video-based Surveillance Systems: Computer Vision and Distributed Processing</em>, pp. 135–144, 2002.</li>
+      </ol>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span>© 2025 NeuroSense · Dheeraj Pandey and Adrian K. Davison</span>
+    <span>Supported by Manchester Metropolitan University scholarships in Life Sciences.</span>
+  </div>
+</footer>
+<script>
+  function copyCitation() {
+    const citation = "Pandey, D. (2025). NeuroSense: Automated fasciculation detection in ultrasound imaging (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.17138130";
+    navigator.clipboard.writeText(citation).then(() => {
+      document.getElementById("copyStatus").textContent = "Citation copied.";
+    }).catch(() => {
+      document.getElementById("copyStatus").textContent = "Copy was unavailable in this browser. Please select the citation text manually.";
+    });
+  }
+</script>
+</body>
+</html>
